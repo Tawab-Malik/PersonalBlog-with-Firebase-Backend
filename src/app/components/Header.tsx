@@ -127,7 +127,7 @@ export default function Header() {
     const [isOpen, setIsOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<{ uid: string; email: string | null; displayName: string | null; photoURL: string | null } | null>(null);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -385,7 +385,7 @@ export default function Header() {
                                             {user.photoURL ? (
                                                 <img
                                                     src={user.photoURL}
-                                                    alt={user.displayName || user.email}
+                                                    alt={user.displayName || user.email || ""}
                                                     className="w-8 h-8 rounded-full"
                                                 />
                                             ) : (

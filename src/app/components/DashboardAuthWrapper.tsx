@@ -5,6 +5,7 @@ import { auth } from "../../../firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import Loader from "./Loader";
+import Link from "next/link";
 
 interface DashboardAuthWrapperProps {
   children: React.ReactNode;
@@ -57,12 +58,12 @@ export default function DashboardAuthWrapper({ children }: DashboardAuthWrapperP
             Please login to access your dashboard.
           </p>
           <div className="text-center">
-            <a
+            <Link
               href="/"
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Go to Home
-            </a>
+            </Link>
           </div>
         </div>
       </div>

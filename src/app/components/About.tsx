@@ -18,7 +18,7 @@ const profile = {
 
 export default function About() {
     // Latest 3 posts (first is large, next two are small)
-    const latestPosts = posts.slice(0, 3).map((post: any) => ({
+    const latestPosts = posts.slice(0, 3).map((post: { slug: string; excerpt: string; title: string; coverImage: string; categories: string[] | string; publishedAt: string; readingTime: string }) => ({
         slug: post.slug,
         content: post.excerpt,
         title: post.title,
@@ -57,7 +57,7 @@ export default function About() {
                 <div className="flex md:flex-row flex-col w-full gap-6 h-full">
                     {/* Two Small Cards */}
                     <div className="w-full xl:w-1/3 flex flex-col gap-6 ">
-                        {latestPosts.slice(1, 3).map((post: any) => (
+                        {latestPosts.slice(1, 3).map((post: { slug: string; content: string; title: string; image: string; category: string; date: string; readTime: string }) => (
                             <Link key={post.slug} href={`/${post.slug}`} className="block text-center group rounded-2xl  shadow hover:shadow-xl transition-all duration-300">
                                 <div className="relative pb-5 w-full ">
                                     <Image src={post.image} alt={post.title} height={200} width={400} className="rounded-lg  transition-transform duration-300" />

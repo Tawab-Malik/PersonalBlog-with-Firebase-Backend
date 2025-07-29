@@ -1,8 +1,6 @@
 import { Inter, Manrope, Nunito } from "next/font/google";
 import "./globals.css";
 import { HeroUIProvider } from "@heroui/react";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
 import LayoutWrapper from "./components/LayoutWrapper";
 
 const manrope = Manrope({

@@ -7,7 +7,6 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { adminEmails } from "../../../firebase/constants/adminEmails";
-import Button from "@heroui/react";
 interface LoginPopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -71,13 +70,17 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
         alert("Login successful! Welcome back!");
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Google login error:", error);
       
-      if (error.code === "auth/popup-closed-by-user") {
-        setError("Login cancelled. Please try again.");
-      } else if (error.code === "auth/popup-blocked") {
-        setError("Popup blocked by browser. Please allow popups and try again.");
+      if (error && typeof error === 'object' && 'code' in error) {
+        if (error.code === "auth/popup-closed-by-user") {
+          setError("Login cancelled. Please try again.");
+        } else if (error.code === "auth/popup-blocked") {
+          setError("Popup blocked by browser. Please allow popups and try again.");
+        } else {
+          setError("Google login failed. Please try again.");
+        }
       } else {
         setError("Google login failed. Please try again.");
       }
@@ -118,18 +121,22 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
       // You can add a toast notification here
       alert("Welcome back! You've successfully logged in.");
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
       
       // Handle specific Firebase errors
-      if (error.code === "auth/user-not-found") {
-        setError("No account found with this email. Please sign up first.");
-      } else if (error.code === "auth/wrong-password") {
-        setError("Incorrect password. Please try again.");
-      } else if (error.code === "auth/invalid-email") {
-        setError("Please enter a valid email address.");
-      } else if (error.code === "auth/too-many-requests") {
-        setError("Too many failed attempts. Please try again later.");
+      if (error && typeof error === 'object' && 'code' in error) {
+        if (error.code === "auth/user-not-found") {
+          setError("No account found with this email. Please sign up first.");
+        } else if (error.code === "auth/wrong-password") {
+          setError("Incorrect password. Please try again.");
+        } else if (error.code === "auth/invalid-email") {
+          setError("Please enter a valid email address.");
+        } else if (error.code === "auth/too-many-requests") {
+          setError("Too many failed attempts. Please try again later.");
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
       } else {
         setError("Something went wrong. Please try again.");
       }
@@ -281,7 +288,7 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
             {/* Switch to Signup */}
             <div className="text-center mt-6">
               <p className="text-gray-600">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <button
                   onClick={onSwitchToSignup}
                   className="text-primary hover:text-primary-600 cursor-pointer font-semibold transition-colors"

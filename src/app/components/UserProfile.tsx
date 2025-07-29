@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, LogOut, Settings, BookOpen, ChevronDown, Shield } from "lucide-react";
 import { auth } from "../../../firebase/config";

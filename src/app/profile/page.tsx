@@ -6,7 +6,7 @@ import { updateProfile } from "firebase/auth";
 import DashboardAuthWrapper from "@/app/components/DashboardAuthWrapper";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User, Camera, Save, Upload } from "lucide-react";
+import { ArrowLeft, User, Camera, Save } from "lucide-react";
 import Loader from "@/app/components/Loader";
 import { useAuth } from "@/app/hooks/useAuth";
 
@@ -29,7 +29,7 @@ function ProfileForm() {
     website: ""
   });
   const [previewImage, setPreviewImage] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [, setSelectedFile] = useState<File | null>(null);
   const router = useRouter();
 
   useEffect(() => {

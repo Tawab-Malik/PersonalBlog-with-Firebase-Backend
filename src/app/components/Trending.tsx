@@ -11,7 +11,7 @@ import { GoArrowRight } from 'react-icons/go';
 import Link from 'next/link';
 
 export default function Trending() {
-    const latestPosts = posts.slice(4, 10).map((post: any) => ({
+    const latestPosts = posts.slice(4, 10).map((post: { slug: string; excerpt: string; title: string; coverImage: string; categories: string[] | string; publishedAt: string; readingTime: string }) => ({
         slug: post.slug,
         content: post.excerpt,
         title: post.title,

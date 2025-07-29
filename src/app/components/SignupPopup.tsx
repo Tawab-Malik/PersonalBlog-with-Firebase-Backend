@@ -7,6 +7,7 @@ import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { adminEmails } from "../../../firebase/constants/adminEmails";
 import { Button } from "@heroui/react";
+import Link from "next/link";
 
 interface SignupPopupProps {
   isOpen: boolean;
@@ -76,13 +77,17 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
         alert("Account created successfully! Welcome to our blog!");
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Google signup error:", error);
       
-      if (error.code === "auth/popup-closed-by-user") {
-        setError("Signup cancelled. Please try again.");
-      } else if (error.code === "auth/popup-blocked") {
-        setError("Popup blocked by browser. Please allow popups and try again.");
+      if (error && typeof error === 'object' && 'code' in error) {
+        if (error.code === "auth/popup-closed-by-user") {
+          setError("Signup cancelled. Please try again.");
+        } else if (error.code === "auth/popup-blocked") {
+          setError("Popup blocked by browser. Please allow popups and try again.");
+        } else {
+          setError("Google signup failed. Please try again.");
+        }
       } else {
         setError("Google signup failed. Please try again.");
       }
@@ -165,23 +170,26 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
         alert("Account created successfully! Welcome to our blog!");
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Signup error:", error);
       
       // Handle specific Firebase errors
-      if (error.code === "auth/email-already-in-use") {
-        setError("Email is already registered. Please try logging in.");
+      if (error && typeof error === 'object' && 'code' in error) {
+        if (error.code === "auth/email-already-in-use") {
+          setError("Email is already registered. Please try logging in.");
       } else if (error.code === "auth/invalid-email") {
         setError("Please enter a valid email address.");
       } else if (error.code === "auth/weak-password") {
         setError("Password is too weak. Please choose a stronger password.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError("کچھ غلط ہو گیا ہے۔ براہ کرم دوبارہ کوشش کریں۔");
       }
+    }
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <AnimatePresence>
@@ -373,17 +381,17 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
             {/* Terms */}
             <p className="text-xs text-gray-500 text-center mt-4">
               By creating an account, you agree to our{" "}
-              <a href="/terms" className="text-primary hover:underline">
+              <Link href="/terms" className="text-primary hover:underline">
                 Terms of Service
-              </a>{" "}
+              </Link>{" "}
               and{" "}
-              <a href="/privacy" className="text-primary hover:underline">
+              <Link href="/privacy" className="text-primary hover:underline">
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
-} 
+}

@@ -19,11 +19,10 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Optional: Initialize Analytics (only in browser)
-let analytics;
 if (typeof window !== "undefined") {
     isSupported().then((supported) => {
         if (supported) {
-            analytics = getAnalytics(app);
+            getAnalytics(app);
         }
     });
 }
