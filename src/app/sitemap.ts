@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import postData from '../../data/postData.json'
+import type { BlogPost } from '@/types/blog'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://personal-blogfirebase.vercel.app' // Remove trailing slash
@@ -27,11 +28,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]
 
   // Dynamic blog post pages - remove duplicates
-  const uniquePosts = postData.filter((post: any, index: number, self: any[]) => 
-    index === self.findIndex((p: any) => p.slug === post.slug)
+  const uniquePosts = (postData as BlogPost[]).filter((post: BlogPost, index: number, self: BlogPost[]) => 
+    index === self.findIndex((p: BlogPost) => p.slug === post.slug)
   )
   
-  const blogPages = uniquePosts.map((post: any) => ({
+  const blogPages = uniquePosts.map((post: BlogPost) => ({
     url: `${baseUrl}/${post.slug}`,
     lastModified: new Date(post.publishedAt || new Date()),
     changeFrequency: 'monthly' as const,

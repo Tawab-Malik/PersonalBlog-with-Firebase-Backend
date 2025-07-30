@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
+import type { BlogPost } from '@/types/blog'
 
-export function generatePostMetadata(post: any): Metadata {
+export function generatePostMetadata(post: BlogPost): Metadata {
   const baseUrl = 'https://personal-blogfirebase.vercel.app/' // Replace with your actual domain
   
   return {

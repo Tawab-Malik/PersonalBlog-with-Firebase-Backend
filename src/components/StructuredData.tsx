@@ -1,9 +1,6 @@
 'use client'
 
-interface StructuredDataProps {
-  type: 'article' | 'website' | 'organization'
-  data: any
-}
+import type { StructuredDataProps } from '@/types/blog'
 
 export default function StructuredData({ type, data }: StructuredDataProps) {
   const baseUrl = 'https://personal-blogfirebase.vercel.app/' // Replace with your actual domain
@@ -11,15 +8,16 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
   const getStructuredData = () => {
     switch (type) {
       case 'article':
+        const articleData = data as import('@/types/blog').BlogPost
         return {
           '@context': 'https://schema.org',
           '@type': 'Article',
-          headline: data.title,
-          description: data.excerpt,
-          image: data.coverImage,
+          headline: articleData.title,
+          description: articleData.excerpt,
+          image: articleData.coverImage,
           author: {
             '@type': 'Person',
-            name: data.author?.name || 'BlogPost Team',
+            name: articleData.author?.name || 'BlogPost Team',
           },
           publisher: {
             '@type': 'Organization',
@@ -29,11 +27,11 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
               url: `${baseUrl}/logo.png`,
             },
           },
-          datePublished: data.publishedAt,
-          dateModified: data.publishedAt,
+          datePublished: articleData.publishedAt,
+          dateModified: articleData.publishedAt,
           mainEntityOfPage: {
             '@type': 'WebPage',
-            '@id': `${baseUrl}/${data.slug}`,
+            '@id': `${baseUrl}/${articleData.slug}`,
           },
         }
       

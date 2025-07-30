@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { generatePostMetadata } from '@/lib/metadata'
 import { db } from '../../../firebase/config'
 import { collection, query, where, getDocs } from 'firebase/firestore'
+import { BlogPost } from '@/types/blog'
 
 interface Props {
   children: React.ReactNode
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const querySnapshot = await getDocs(q)
     
     if (!querySnapshot.empty) {
-      const post = querySnapshot.docs[0].data()
+      const post = querySnapshot.docs[0].data() as BlogPost
       return generatePostMetadata(post)
     }
     
