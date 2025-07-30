@@ -145,6 +145,7 @@ export default function Header() {
         setActiveDropdown(null);
     };
 
+    
     return (
         <header className="bg-white  sticky top-0 z-20 font-primary">
             <div className="  flex flex-row md:flex-col justify-between items-center">
