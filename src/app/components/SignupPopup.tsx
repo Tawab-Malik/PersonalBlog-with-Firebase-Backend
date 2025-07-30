@@ -3,11 +3,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, EyeOff, User, Mail, Lock, Loader2 } from "lucide-react";
 import { auth, db, provider } from "../../../firebase/config";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { adminEmails } from "../../../firebase/constants/adminEmails";
 import { Button } from "@heroui/react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 interface SignupPopupProps {
   isOpen: boolean;
@@ -28,6 +29,54 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Check if device is mobile
+  const isMobile = () => {
+    if (typeof window !== 'undefined') {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    return false;
+  };
+
+  // Handle redirect result on component mount
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          const user = result.user;
+          
+          // Check if user document exists in Firestore
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          
+          if (!userDoc.exists()) {
+            // Create user document if it doesn't exist
+            const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
+            await setDoc(doc(db, "users", user.uid), {
+              username: user.displayName || user.email?.split('@')[0] || "User",
+              email: user.email,
+              createdAt: new Date().toISOString(),
+              profileImage: user.photoURL || "",
+              bio: "",
+              isAdmin: isAdmin,
+            });
+          }
+
+          // Show success message
+          const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
+          if (isAdmin) {
+            alert("Admin account created successfully! You can now access the admin panel.");
+          } else {
+            alert("Account created successfully! Welcome to our blog!");
+          }
+        }
+      } catch (error) {
+        console.error("Redirect result error:", error);
+      }
+    };
+
+    handleRedirectResult();
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -41,6 +90,13 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
     setError("");
 
     try {
+      // Use redirect method for mobile devices
+      if (isMobile()) {
+        await signInWithRedirect(auth, provider);
+        return; // Redirect will happen, no need to continue
+      }
+
+      // Use popup method for desktop
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -85,8 +141,12 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
           setError("Signup cancelled. Please try again.");
         } else if (error.code === "auth/popup-blocked") {
           setError("Popup blocked by browser. Please allow popups and try again.");
+        } else if (error.code === "auth/unauthorized-domain") {
+          setError("This domain is not authorized for Google login. Please contact support.");
+        } else if (error.code === "auth/network-request-failed") {
+          setError("Network error. Please check your internet connection and try again.");
         } else {
-          setError("Google signup failed. Please try again.");
+          setError(`Signup failed: ${error.code}. Please try again.`);
         }
       } else {
         setError("Google signup failed. Please try again.");
