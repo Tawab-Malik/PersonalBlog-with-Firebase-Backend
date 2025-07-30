@@ -92,6 +92,23 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" />
         {/* Add your Google verification tag here */}
         {/* <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> */}
+        
+        {/* Google Analytics */}
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+            `,
+          }}
+        />
+        
         <StructuredData type="website" data={{}} />
         <StructuredData type="organization" data={{}} />
       </head>

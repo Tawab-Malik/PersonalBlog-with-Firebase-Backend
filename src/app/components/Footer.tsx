@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Facebook, Twitter, Instagram, Youtube, Linkedin, Github, ArrowUp } from 'lucide-react'
 import Link from 'next/link'
+import { createSocialUTM } from '@/lib/utm'
 
 export default function Footer() {
     const [showScrollTop, setShowScrollTop] = useState(false)
@@ -20,13 +21,15 @@ export default function Footer() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
+    const baseUrl = 'https://personal-blogfirebase.vercel.app'
+    
     const socialLinks = [
-        { icon: Facebook, href: '#', label: 'Facebook' },
-        { icon: Twitter, href: '#', label: 'Twitter' },
-        { icon: Instagram, href: '#', label: 'Instagram' },
-        { icon: Youtube, href: '#', label: 'Youtube' },
-        { icon: Linkedin, href: '#', label: 'LinkedIn' },
-        { icon: Github, href: '#', label: 'GitHub' },
+        { icon: Facebook, href: createSocialUTM(baseUrl, 'facebook', 'footer_social'), label: 'Facebook' },
+        { icon: Twitter, href: createSocialUTM(baseUrl, 'twitter', 'footer_social'), label: 'Twitter' },
+        { icon: Instagram, href: createSocialUTM(baseUrl, 'instagram', 'footer_social'), label: 'Instagram' },
+        { icon: Youtube, href: createSocialUTM(baseUrl, 'youtube', 'footer_social'), label: 'Youtube' },
+        { icon: Linkedin, href: createSocialUTM(baseUrl, 'linkedin', 'footer_social'), label: 'LinkedIn' },
+        { icon: Github, href: createSocialUTM(baseUrl, 'github', 'footer_social'), label: 'GitHub' },
     ]
 
     return (
