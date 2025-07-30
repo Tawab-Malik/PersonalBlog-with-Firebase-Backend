@@ -152,7 +152,7 @@ export default function Header() {
                     <div className="flex justify-between py-3 items-center w-full">
                         {/* Logo */}
                         <Link href="/" className="text-2xl font-nunito font-bold text-indigo-600">
-                            <Image src="/images/logo.webp" alt="TawabBlog" width={180} height={60} />
+                            <Image src="/images/logo.webp" className="w-[120px] h-[40px] md:w-[180px] md:h-[60px]" alt="TawabBlog" width={180} height={60} />
                         </Link>
                         <div className="flex items-center gap-x-3">
                             <LanguageDropdown/>
@@ -166,9 +166,7 @@ export default function Header() {
                                     Login
                                 </Button>
                             )}
-                        </div>
-
-
+                            
                         {/* Mobile Menu Toggle */}
                         <button
                             className="md:hidden text-gray-700 focus:outline-none"
@@ -199,6 +197,9 @@ export default function Header() {
                                 )}
                             </motion.svg>
                         </button>
+                        </div>
+
+
                     </div>
                 </div>
 
