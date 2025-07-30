@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables Setup
+
+Before running the project, you need to set up your environment variables:
+
+1. Copy the `env-template.txt` file to `.env.local`:
+```bash
+cp env-template.txt .env.local
+```
+
+
 ## Getting Started
 
 First, run the development server:
