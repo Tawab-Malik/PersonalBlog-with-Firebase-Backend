@@ -259,7 +259,6 @@ export default function SignupPopup({ isOpen, onClose, onSwitchToLogin }: Signup
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 !backdrop-blur-xl flex items-center justify-center z-50 p-4"
-          onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}

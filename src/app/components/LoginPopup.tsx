@@ -212,14 +212,12 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 !backdrop-blur-xl flex items-center justify-center z-50 p-4"
-          onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative"
-            onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button

@@ -385,10 +385,12 @@ export default function Header() {
                                     <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600 to-blue-500 rounded-lg">
                                         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                                             {user.photoURL ? (
-                                                <img
+                                                <Image
                                                     src={user.photoURL}
                                                     alt={user.displayName || user.email || ""}
                                                     className="w-8 h-8 rounded-full"
+                                                    height={30}
+                                                    width={30}
                                                 />
                                             ) : (
                                                 <span className="text-primary font-bold text-sm">
@@ -402,9 +404,7 @@ export default function Header() {
                                     </div>
                                 ) : (
                                     <Button onPress={() => setModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-blue-500 h-auto rounded-lg p-3 flex items-center gap-3 w-full">
-                                        <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
-                                            <span className="text-white font-bold text-sm">L</span>
-                                        </div>
+                                    
                                         <span className="text-white text-sm font-medium">Login</span>
                                     </Button>
                                 )}

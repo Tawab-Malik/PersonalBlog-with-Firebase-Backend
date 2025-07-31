@@ -6,6 +6,7 @@ import { auth } from "../../../firebase/config";
 import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { useAuth } from "@/app/hooks/useAuth";
+import Image from "next/image";
 
 export default function UserProfile() {
   const { user, isAdmin } = useAuth();
@@ -32,10 +33,12 @@ export default function UserProfile() {
       >
         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
           {user.photoURL ? (
-            <img
+            <Image
               src={user.photoURL}
               alt={user.displayName || user.email || ""}
               className="w-8 h-8 rounded-full"
+              height={30}
+              width={30}
             />
           ) : (
             <User className="w-5 h-5 text-primary" />
@@ -61,9 +64,11 @@ export default function UserProfile() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                   {user.photoURL ? (
-                    <img
+                    <Image
                       src={user.photoURL ?? undefined}
                       alt={user.displayName || user.email || ""}
+                      height={30}
+                      width={30}
                       className="w-10 h-10 rounded-full"
                     />
                   ) : (
@@ -88,7 +93,7 @@ export default function UserProfile() {
             {/* Menu Items */}
             <div className="py-2">
               <Link
-                href="/profile"
+                href="/dashbaord/profile"
                 className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-150"
                 onClick={() => setIsDropdownOpen(false)}
               >
@@ -118,7 +123,7 @@ export default function UserProfile() {
               )}
               
               <Link
-                href="/settings"
+                href="/dashbaord/settings"
                 className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-150"
                 onClick={() => setIsDropdownOpen(false)}
               >

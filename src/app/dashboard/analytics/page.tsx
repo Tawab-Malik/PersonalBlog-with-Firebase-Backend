@@ -4,7 +4,6 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../../../firebase/config";
 import { motion } from "framer-motion";
 import { 
-    BarChart3,
     Users, 
     FileText, 
     Eye, 
