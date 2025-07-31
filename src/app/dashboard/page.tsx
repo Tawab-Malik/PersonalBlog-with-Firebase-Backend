@@ -8,7 +8,23 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DashboardAuthWrapper from "@/app/components/DashboardAuthWrapper";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { 
+    Menu, 
+    X, 
+    Home, 
+    FileText, 
+    Plus, 
+    Settings, 
+    User, 
+    LogOut, 
+    BarChart3, 
+    Users, 
+    Edit3,
+    Trash2,
+    Calendar,
+    Clock,
+    Tag
+} from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
 import Loader from "../components/Loader";
 
@@ -114,99 +130,156 @@ function AdminDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
             {/* Mobile Sidebar Toggle */}
             <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
+                className="md:hidden fixed top-4 left-4 z-50 p-3 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
                 {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Sidebar */}
+            {/* Mobile Sidebar Overlay */}
             <AnimatePresence>
                 {sidebarOpen && (
-                    <motion.div
-                        initial={{ x: -300 }}
-                        animate={{ x: 0 }}
-                        exit={{ x: -300 }}
-                        className="fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg md:hidden"
-                    >
-                        <SidebarContent user={user!} handleLogout={handleLogout} isAdmin={isAdmin} />
-                    </motion.div>
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ x: -300 }}
+                            animate={{ x: 0 }}
+                            exit={{ x: -300 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="fixed inset-y-0 left-0 z-40 w-80 bg-white shadow-2xl md:hidden"
+                        >
+                            <SidebarContent user={user!} handleLogout={handleLogout} isAdmin={isAdmin} />
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
 
             {/* Desktop Sidebar */}
-            <div className="hidden md:block w-1/4 bg-white shadow-lg fixed inset-y-0 left-0 z-30">
+            <div className="hidden md:block w-80 bg-white shadow-2xl fixed inset-y-0 left-0 z-30">
                 <SidebarContent user={user!} handleLogout={handleLogout} isAdmin={isAdmin} />
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 w-full md:ml-[25%] p-6 md:p-10">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-bold text-black">
-                        {isAdmin ? "Admin Dashboard" : "My Dashboard"}
-                    </h1>
-                    <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                            {isAdmin ? "Admin" : "User"}
-                        </span>
+            <main className="flex-1 w-full md:ml-80 p-6 md:p-10">
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                            {isAdmin ? "Admin Dashboard" : "My Dashboard"}
+                        </h1>
+                        <p className="text-gray-600 mt-2">Manage your content and settings</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-lg">
+                            <div className={`w-3 h-3 rounded-full ${isAdmin ? 'bg-purple-500' : 'bg-blue-500'}`}></div>
+                            <span className={`text-sm font-semibold ${isAdmin ? 'text-purple-700' : 'text-blue-700'}`}>
+                                {isAdmin ? "Administrator" : "User"}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 {posts.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="text-gray-400 text-6xl mb-4">📝</div>
-                        <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-16"
+                    >
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FileText className="w-12 h-12 text-gray-400" />
+                        </div>
+                        <h3 className="text-2xl font-semibold text-gray-700 mb-3">
                             {isAdmin ? "No posts found" : "You haven't created any posts yet"}
                         </h3>
-                        <p className="text-gray-500 mb-6">
+                        <p className="text-gray-500 mb-8 max-w-md mx-auto">
                             {isAdmin ? "There are no posts in the system." : "Start by creating your first post!"}
                         </p>
                         <Link
                             href="/dashboard/add"
-                            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                         >
+                            <Plus className="w-5 h-5" />
                             Create New Post
                         </Link>
-                    </div>
+                    </motion.div>
                 ) : (
-                    <ul className="gap-6 grid md:grid-cols-2 xl:grid-cols-3">
-                        {posts.map(post => (
-                            <li
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {posts.map((post, index) => (
+                            <motion.div
                                 key={post.id}
-                                className="p-4 border rounded shadow flex flex-col justify-between items-start gap-4 bg-white"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group"
                             >
-                                <div className="w-full">
-                                    <span className="block text-lg font-semibold">{post.title}</span>
+                                <div className="relative h-48 overflow-hidden">
                                     <Image
                                         src={post.coverImage}
                                         alt={post.title}
-                                        className="w-full object-cover mt-2 rounded"
-                                        height={192}
-                                        width={300}
+                                        fill
+                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                </div>
+                                
+                                <div className="p-6">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Tag className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm text-gray-500">
+                                            {post.categories?.[0] || "Uncategorized"}
+                                        </span>
+                                    </div>
+                                    
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2">
+                                        {post.title}
+                                    </h3>
+                                    
+                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                                        <div className="flex items-center gap-1">
+                                            <Calendar className="w-4 h-4" />
+                                            <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="w-4 h-4" />
+                                            <span>{post.readingTime}</span>
+                                        </div>
+                                    </div>
+                                    
                                     {isAdmin && post.userId && (
-                                        <p className="text-sm text-gray-500 mt-2">
-                                            User ID: {post.userId}
-                                        </p>
+                                        <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg">
+                                            <Users className="w-4 h-4 text-gray-400" />
+                                            <span className="text-xs text-gray-500">User ID: {post.userId}</span>
+                                        </div>
                                     )}
+                                    
+                                    <div className="flex items-center gap-2">
+                                        <Link 
+                                            href={`/dashboard/edit/${post.id}`} 
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                        >
+                                            <Edit3 className="w-4 h-4" />
+                                            Edit
+                                        </Link>
+                                        <Button
+                                            onPress={() => handleDelete(post.id)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Delete
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="space-x-4">
-                                    <Link href={`/dashboard/edit/${post.id}`} className="text-blue-600 underline">
-                                        Edit
-                                    </Link>
-                                    <Button
-                                        onPress={() => handleDelete(post.id)}
-                                        className="text-red-600 underline cursor-pointer bg-transparent shadow-none px-2"
-                                    >
-                                        Delete
-                                    </Button>
-                                </div>
-                            </li>
+                            </motion.div>
                         ))}
-                    </ul>
+                    </div>
                 )}
             </main>
         </div>
@@ -227,50 +300,126 @@ function SidebarContent({
     handleLogout: () => void;
     isAdmin: boolean;
 }) {
-    return (
-        <>
-            <Link href={"/dashboard"}>
-                <Image
-                    src="/images/logo.webp"
-                    alt="Dashboard"
-                    className="object-cover mb-4 rounded"
-                    height={60}
-                    width={180}
-                />
-            </Link>
+    const [activeSection, setActiveSection] = useState('dashboard');
 
-            <div className="flex flex-col justify-between items-start gap-4 h-[calc(100%-10rem)]">
-                <Link
-                    href="/dashboard/add"
-                    className="bg-blue-600 text-white px-4 py-2 rounded w-full text-center"
-                >
-                    Add New Post
+    const menuItems = [
+        { id: 'dashboard', label: 'Dashboard', icon: Home, href: '/dashboard' },
+        { id: 'posts', label: 'My Posts', icon: FileText, href: '/dashboard/posts' },
+        { id: 'add', label: 'Create Post', icon: Plus, href: '/dashboard/add' },
+        { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/dashboard/analytics' },
+        { id: 'users', label: 'Users', icon: Users, href: '/dashboard/users', adminOnly: true },
+        { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
+        { id: 'profile', label: 'Profile', icon: User, href: '/dashboard/profile' },
+    ];
+
+    return (
+        <div className="h-full flex flex-col bg-gradient-to-b from-white to-gray-50">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200">
+                <Link href="/dashboard" className="block">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-800">BlogPost</h1>
+                            <p className="text-sm text-gray-500">Tawa&apos;s Panel</p>
+                        </div>
+                    </div>
                 </Link>
-                <div className="border-t border-gray-300 pt-4 mt-auto w-full">
-                    {user?.photoURL && (
-                        <Image
-                            src={user.photoURL}
-                            alt="User Avatar"
-                            width={50}
-                            height={50}
-                            className="rounded-full mx-auto mb-2"
-                        />
-                    )}
-                    <h3 className="text-xl text-center font-medium text-gray-700">
-                        {user.displayName ?? "User"}
-                    </h3>
-                    <p className="text-sm text-center text-gray-500 mb-2">
-                        {isAdmin ? "Administrator" : "Regular User"}
-                    </p>
-                    <Button
-                        onPress={handleLogout}
-                        className="mt-4 bg-red-600 text-white px-4 py-2 rounded w-full hover:bg-red-700 transition"
-                    >
-                        Logout
-                    </Button>
+            </div>
+
+            {/* Navigation Menu */}
+            <nav className="flex-1 p-6">
+                <div className="space-y-2">
+                    {menuItems.map((item) => {
+                        if (item.adminOnly && !isAdmin) return null;
+                        
+                        return (
+                            <Link
+                                key={item.id}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                                    activeSection === item.id
+                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                                }`}
+                                onClick={() => setActiveSection(item.id)}
+                            >
+                                <item.icon className={`w-5 h-5 ${
+                                    activeSection === item.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'
+                                }`} />
+                                <span className="font-medium">{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </nav>
+
+            {/* User Profile Section */}
+            <div className="p-6 border-t border-gray-200">
+                <div className="bg-white rounded-2xl p-4 shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="relative">
+                            {user?.photoURL ? (
+                                <Image
+                                    src={user.photoURL}
+                                    alt="User Avatar"
+                                    width={48}
+                                    height={48}
+                                    className="rounded-full"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                    <User className="w-6 h-6 text-white" />
+                                </div>
+                            )}
+                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                isAdmin ? 'bg-purple-500' : 'bg-green-500'
+                            }`}></div>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-semibold text-gray-800">
+                                {user.displayName ?? "User"}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                                {user.email}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <div className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-purple-500' : 'bg-blue-500'}`}></div>
+                                <span className={`text-xs font-medium ${isAdmin ? 'text-purple-600' : 'text-blue-600'}`}>
+                                    {isAdmin ? "Administrator" : "Regular User"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Link
+                            href="/dashboard/profile"
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                            <User className="w-4 h-4" />
+                            Edit Profile
+                        </Link>
+                        <Link
+                            href="/dashboard/settings"
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                            <Settings className="w-4 h-4" />
+                            Settings
+                        </Link>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
 

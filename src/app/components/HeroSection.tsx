@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import Loader from "./Loader";
 
 interface GalleryItem {
     id: number;
@@ -60,6 +61,26 @@ const galleryItems: GalleryItem[] = [
 export default function HeroSection() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
+
+    // Preload images to prevent white flashes
+    useEffect(() => {
+        const preloadImages = async () => {
+            const imagePromises = galleryItems.map((item) => {
+                return new Promise<void>((resolve) => {
+                    const img = new window.Image();
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve(); // Continue even if image fails
+                    img.src = item.image;
+                });
+            });
+            
+            await Promise.all(imagePromises);
+            setImagesLoaded(true);
+        };
+        
+        preloadImages();
+    }, []);
 
     // Auto-play functionality for gallery slider
     useEffect(() => {
@@ -87,15 +108,23 @@ export default function HeroSection() {
     return (
         <section className="relative max-w-[2000px] mx-auto">
             {/* Hero Slider */}
-            <div className="relative h-[600px] md:h-[700px] overflow-hidden">
-                <AnimatePresence mode="wait">
+            <div className="relative h-[600px] md:h-[700px] overflow-hidden bg-gray-900">
+                {!imagesLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center ">
+                        <Loader/>
+                    </div>
+                )}
+                <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                         key={safeCurrentSlide}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="absolute inset-0"
+                        initial={{ y: 100 }}
+                        animate={{ y: 0 }}
+                        exit={{ y: -20 }}
+                        transition={{ 
+                            duration: 0.6,
+                            ease: "easeInOut"
+                        }}
+                        className="absolute inset-0 will-change-transform"
                     >
                         {/* Background Image */}
                         <div className="absolute inset-0">
@@ -105,9 +134,11 @@ export default function HeroSection() {
                                 fill
                                 className="object-cover"
                                 priority
+                                sizes="100vw"
+                                quality={90}
                             />
-                            {/* Overlay */}
-
+                            {/* Overlay for better text readability */}
+                            <div className="absolute inset-0 bg-black/10"></div>
                         </div>
 
                         {/* Content */}
@@ -117,7 +148,11 @@ export default function HeroSection() {
                                 <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.2 }}
+                                    transition={{ 
+                                        delay: 0.2,
+                                        duration: 0.6,
+                                        ease: "easeOut"
+                                    }}
                                     className="mb-6"
                                 >
                                     <span className="inline-block bg-orange-500 text-white px-4 py-2 text-sm font-semibold uppercase tracking-wider">
@@ -129,7 +164,11 @@ export default function HeroSection() {
                                 <motion.h1
                                     initial={{ y: 30, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
+                                    transition={{ 
+                                        delay: 0.4,
+                                        duration: 0.7,
+                                        ease: "easeOut"
+                                    }}
                                     className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
                                 >
                                     {galleryItems[safeCurrentSlide]?.title || "Welcome to Our Blog"}
@@ -139,7 +178,11 @@ export default function HeroSection() {
                                 <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.6 }}
+                                    transition={{ 
+                                        delay: 0.6,
+                                        duration: 0.6,
+                                        ease: "easeOut"
+                                    }}
                                     className="flex flex-wrap justify-center items-center gap-6 text-white text-sm"
                                 >
                                     <div className="flex items-center gap-2">
@@ -202,8 +245,11 @@ export default function HeroSection() {
                                             ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
                                             : "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
                                     }}
-                                    transition={{ duration: 0.3 }}
-                                    className={`bg-white rounded-lg overflow-hidden transition-all duration-300 transform ${safeCurrentSlide === index
+                                    transition={{ 
+                                        duration: 0.5,
+                                        ease: "easeInOut"
+                                    }}
+                                    className={`bg-white rounded-lg overflow-hidden transition-all duration-500 transform ${safeCurrentSlide === index
                                         ? "ring-2 ring-primary ring-opacity-50"
                                         : "hover:shadow-lg"
                                         }`}

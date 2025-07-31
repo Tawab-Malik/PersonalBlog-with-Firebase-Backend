@@ -131,7 +131,7 @@ export default function About() {
                 <div className="bg-primary-50 rounded-2xl p-6 flex flex-col items-center text-center border border-primary/50">
                     <h4 className="text-lg font-bold text-primary mb-2">Subscribe for Updates</h4>
                     <p className="text-gray-600 font-medium mb-4 text-sm">Get the latest posts and updates directly in your inbox.</p>
-                    <form className="flex w-full max-w-xs gap-2">
+                    <form className="flex w-full mx-auto md:max-w-xs gap-2">
                         <input type="email" placeholder="Your email" className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-primary outline-none" />
                         <Button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary-600 transition-colors duration-200">Subscribe</Button>
                     </form>

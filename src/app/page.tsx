@@ -2,6 +2,7 @@
 import HeroSection from "@/app/components/HeroSection";
 import About from "./components/About";
 import Trending from "./components/Trending";
+import LastGridSection from "./components/LastGridSection";
 
 export default function Home() {
 
@@ -13,6 +14,7 @@ export default function Home() {
                 <About />
                 <Trending />
                 {/* <BlogPage /> */}
+                <LastGridSection/>
             </div>
 
         </>

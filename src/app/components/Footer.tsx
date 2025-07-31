@@ -96,7 +96,7 @@ export default function Footer() {
                         </div>
                     </div>
                 </div>
-            </footer>
+        </footer>
 
             {/* Scroll to Top Button */}
             {showScrollTop && (
