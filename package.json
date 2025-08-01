@@ -9,9 +9,12 @@
     "lint": "next lint",
     "upload-posts": "tsx firebase/scripts/uploadPosts.ts",
     "create-indexes": "tsx firebase/scripts/createIndexes.ts",
-    "update-post-authors": "tsx firebase/scripts/updatePostAuthors.ts",
-    "fix-post-authors": "tsx firebase/scripts/fixPostAuthors.ts",
-    "add-author-emails": "tsx firebase/scripts/addAuthorEmails.ts"
+            "update-post-authors": "tsx firebase/scripts/updatePostAuthors.ts",
+        "fix-post-authors": "tsx firebase/scripts/fixPostAuthors.ts",
+        "add-author-emails": "tsx firebase/scripts/addAuthorEmails.ts",
+        "update-to-real-emails": "tsx firebase/scripts/updateToRealEmails.ts",
+        "auto-update-emails": "tsx firebase/scripts/autoUpdateAuthorEmails.ts",
+        "update-author-names": "tsx firebase/scripts/updateAuthorNames.ts"
   },
   "dependencies": {
     "@heroui/react": "^2.8.1",

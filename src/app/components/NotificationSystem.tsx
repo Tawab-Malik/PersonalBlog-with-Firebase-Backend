@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Bell, X, MessageCircle, User, Check, Trash2, AlertCircle } from "lucide-react";
+import { Bell, X, MessageCircle, User, Check, Trash2, AlertCircle, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy, limit } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { useAuth } from "@/app/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 interface Notification {
     id: string;
@@ -23,6 +24,7 @@ interface Notification {
 
 export default function NotificationSystem() {
     const { user } = useAuth();
+    const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -121,6 +123,21 @@ export default function NotificationSystem() {
             await deleteDoc(doc(db, "notifications", notificationId));
         } catch (error) {
             console.error("Error deleting notification:", error);
+        }
+    };
+
+    const navigateToPost = async (notification: Notification) => {
+        try {
+            // Mark notification as read
+            await markAsRead(notification.id);
+            
+            // Navigate to the post
+            router.push(`/${notification.postSlug}`);
+            
+            // Close dropdown
+            setShowDropdown(false);
+        } catch (error) {
+            console.error("Error navigating to post:", error);
         }
     };
 
@@ -234,8 +251,9 @@ export default function NotificationSystem() {
                                             key={notification.id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
-                                            className={`p-4 hover:bg-gray-50 transition-colors ${!notification.isRead ? "bg-blue-50" : ""
+                                            className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? "bg-blue-50" : ""
                                                 }`}
+                                            onClick={() => navigateToPost(notification)}
                                         >
                                             <div className="flex items-start gap-3">
                                                 <div className={`p-2 rounded-full ${!notification.isRead ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
@@ -279,18 +297,34 @@ export default function NotificationSystem() {
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-2">
                                                         <button
-                                                            onClick={() => markAsRead(notification.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                markAsRead(notification.id);
+                                                            }}
                                                             className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
                                                         >
                                                             <Check className="w-3 h-3" />
                                                             Mark read
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteNotification(notification.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                deleteNotification(notification.id);
+                                                            }}
                                                             className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                             Delete
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigateToPost(notification);
+                                                            }}
+                                                            className="text-xs text-green-600 hover:text-green-800 flex items-center gap-1"
+                                                        >
+                                                            <ExternalLink className="w-3 h-3" />
+                                                            View Post
                                                         </button>
                                                     </div>
                                                 </div>
