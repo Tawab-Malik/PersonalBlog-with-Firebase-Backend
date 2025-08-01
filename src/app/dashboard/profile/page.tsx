@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../../../../firebase/config";
 import { Button } from "@heroui/react";
 import { motion } from "framer-motion";
@@ -47,10 +47,19 @@ interface ProfileData {
         setSuccess("");
 
         try {
+            // Update Firebase Auth profile
             await updateProfile(user, {
                 displayName: profileData.displayName,
                 photoURL: profileData.photoURL
             });
+
+            // Also update Firestore with latest data
+            await setDoc(doc(db, "userProfiles", user.uid), {
+                photoURL: profileData.photoURL,
+                displayName: profileData.displayName,
+                email: user.email,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
 
             setSuccess("Profile updated successfully!");
             setIsEditing(false);
@@ -131,7 +140,7 @@ interface ProfileData {
                     return;
                 }
                 
-                // Store Base64 in Firestore and use a simple URL for Firebase Auth
+                // Store Base64 in Firestore and use it for display
                 try {
                     // Save Base64 to Firestore
                     await setDoc(doc(db, "userProfiles", user.uid), {
@@ -141,10 +150,8 @@ interface ProfileData {
                         updatedAt: new Date().toISOString()
                     }, { merge: true });
                     
-                    // Use a simple URL for Firebase Auth (to avoid length limit)
-                    const simpleURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=random&size=150&bold=true&color=fff`;
-                    
-                    setProfileData(prev => ({ ...prev, photoURL: simpleURL }));
+                    // Use Base64 for display (it's compressed and small enough)
+                    setProfileData(prev => ({ ...prev, photoURL: compressedDataURL }));
                     setSuccess("Profile picture uploaded successfully!");
                     setImageUploading(false);
                 } catch (firestoreError) {
@@ -174,6 +181,30 @@ interface ProfileData {
     const triggerImageUpload = () => {
         fileInputRef.current?.click();
     };
+
+    // Load profile data from Firestore on component mount
+    useEffect(() => {
+        const loadProfileData = async () => {
+            if (!user) return;
+            
+            try {
+                const userProfileDoc = await getDoc(doc(db, "userProfiles", user.uid));
+                if (userProfileDoc.exists()) {
+                    const profileData = userProfileDoc.data();
+                    if (profileData.photoURL) {
+                        setProfileData(prev => ({ 
+                            ...prev, 
+                            photoURL: profileData.photoURL 
+                        }));
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading profile data:", error);
+            }
+        };
+
+        loadProfileData();
+    }, [user]);
 
 
 

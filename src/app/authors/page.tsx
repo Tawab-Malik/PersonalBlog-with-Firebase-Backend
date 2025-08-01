@@ -36,7 +36,8 @@ interface Author {
 interface Post {
     id: string;
     author: {
-        email: string;
+        name?: string;
+        email?: string;
     };
 }
 
@@ -86,8 +87,8 @@ function AuthorsPage() {
         fetchData();
     }, []);
 
-    const getAuthorPostCount = (authorEmail: string) => {
-        return posts.filter(post => post.author?.email === authorEmail).length;
+    const getAuthorPostCount = (authorUsername: string) => {
+        return posts.filter(post => post.author?.name === authorUsername).length;
     };
 
     const filteredAuthors = authors.filter(author =>
@@ -178,7 +179,7 @@ function AuthorsPage() {
                                 <div>
                                     <p className="text-sm text-gray-600">Active Writers</p>
                                     <p className="text-2xl font-bold text-gray-800">
-                                        {authors.filter(author => getAuthorPostCount(author.email) > 0).length}
+                                        {authors.filter(author => getAuthorPostCount(author.username) > 0).length}
                                     </p>
                                 </div>
                             </div>
@@ -204,7 +205,7 @@ function AuthorsPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredAuthors.map((author, index) => {
-                            const postCount = getAuthorPostCount(author.email);
+                            const postCount = getAuthorPostCount(author.username);
                             const authorSlug = author.username.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                             
                             return (

@@ -35,7 +35,7 @@ interface Post {
     author: {
         name: string;
         avatar: string;
-        email: string;
+        email?: string;
     };
 }
 
@@ -95,7 +95,8 @@ function AuthorPage() {
                 
                 postsSnapshot.forEach((doc) => {
                     const postData = doc.data();
-                    if (foundAuthor && postData.author?.email === foundAuthor.email) {
+                    // Match by author name instead of email since JSON data doesn't have email
+                    if (foundAuthor && postData.author?.name === foundAuthor.username) {
                         authorPosts.push({
                             id: doc.id,
                             ...postData

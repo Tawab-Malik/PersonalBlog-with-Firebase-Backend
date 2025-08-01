@@ -204,18 +204,18 @@ function SettingsPage() {
                         <div className="bg-white rounded-2xl shadow-lg p-6">
                             <h2 className="text-lg font-semibold text-gray-800 mb-4">Settings</h2>
                             <nav className="space-y-2">
-                                <a href="#profile" className="flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-xl">
+                                <Link href="/dashboard/profile" className="flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-xl">
                                     <User className="w-5 h-5" />
                                     <span className="font-medium">Profile</span>
-                                </a>
-                                <a href="#security" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors">
+                                </Link>
+                                <Link href="#security" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors">
                                     <Shield className="w-5 h-5" />
                                     <span className="font-medium">Security</span>
-                                </a>
-                                <a href="#notifications" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors">
+                                </Link>
+                                <Link href="#notifications" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors">
                                     <Bell className="w-5 h-5" />
                                     <span className="font-medium">Notifications</span>
-                                </a>
+                                </Link>
                             </nav>
                         </div>
                     </div>

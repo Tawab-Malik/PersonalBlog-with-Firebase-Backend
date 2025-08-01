@@ -66,7 +66,8 @@ function AddPostForm() {
                 userName: user.displayName || user.email?.split('@')[0] || "Anonymous",
                 author: {
                     name: user.displayName || user.email?.split('@')[0] || "Anonymous",
-                    avatar: user.photoURL || "/default-avatar.png"
+                    avatar: user.photoURL || "/default-avatar.png",
+                    email: user.email || ""
                 },
                 categories: selectedCategories,
                 createdAt: new Date().toISOString(),

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Script from "next/script";
 import LanguageDropdown from "@/app/components/LanguageDropDown";
+import NotificationSystem from "@/app/components/NotificationSystem";
 import { auth } from "../../../firebase/config";
 
 interface MenuItem {
@@ -161,6 +162,7 @@ export default function Header() {
                         </Link>
                         <div className="flex items-center gap-x-3">
                             <LanguageDropdown/>
+                            {user && <NotificationSystem />}
                             {user ? (
                                 <UserProfile />
                             ) : (
