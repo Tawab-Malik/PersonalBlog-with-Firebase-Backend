@@ -272,7 +272,7 @@ function SettingsPage() {
                                         <button
                                             type="button"
                                             onClick={() => togglePasswordVisibility('current')}
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            className="absolute right-3 top-6 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                         >
                                             {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
@@ -288,7 +288,7 @@ function SettingsPage() {
                                         New Email Address
                                     </label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <Mail className="absolute left-3 top-6 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="email"
                                             value={formData.newEmail}
@@ -310,7 +310,7 @@ function SettingsPage() {
                                         New Password
                                     </label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <Lock className="absolute left-3 top-6 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type={showPasswords.new ? "text" : "password"}
                                             value={formData.newPassword}
@@ -323,7 +323,7 @@ function SettingsPage() {
                                         <button
                                             type="button"
                                             onClick={() => togglePasswordVisibility('new')}
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            className="absolute right-3 top-6 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                         >
                                             {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
@@ -342,7 +342,7 @@ function SettingsPage() {
                                         Confirm New Password
                                     </label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <Lock className="absolute left-3 top-6 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type={showPasswords.confirm ? "text" : "password"}
                                             value={formData.confirmPassword}
@@ -355,7 +355,7 @@ function SettingsPage() {
                                         <button
                                             type="button"
                                             onClick={() => togglePasswordVisibility('confirm')}
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            className="absolute right-3 top-6 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                         >
                                             {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>

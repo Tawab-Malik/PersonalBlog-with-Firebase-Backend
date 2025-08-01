@@ -11,9 +11,10 @@ interface LoginPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToSignup: () => void;
+  onSwitchToForgotPassword: () => void;
 }
 
-export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginPopupProps) {
+export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitchToForgotPassword }: LoginPopupProps) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -357,7 +358,10 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
 
             {/* Forgot Password */}
             <div className="text-center mt-4">
-              <button className="text-primary hover:text-primary-600 text-sm transition-colors">
+              <button 
+                onClick={onSwitchToForgotPassword}
+                className="text-primary hover:text-primary-600 text-sm cursor-pointer transition-colors"
+              >
                 Forgot your password?
               </button>
             </div>

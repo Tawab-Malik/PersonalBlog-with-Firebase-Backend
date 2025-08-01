@@ -105,9 +105,12 @@ export default function BlogPage() {
                                         height={40}
                                         width={40}
                                     />
-                                    <span className="text-sm text-gray-600">
-                    {post.author.name}
-                  </span>
+                                    <Link 
+                                        href={`/authors/${post.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                        className="text-sm text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                                    >
+                                        {post.author.name}
+                                    </Link>
                                 </div>
                             </div>
                         </div>

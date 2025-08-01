@@ -2,15 +2,16 @@
 import { useState } from "react";
 import SignupPopup from "./SignupPopup";
 import LoginPopup from "./LoginPopup";
+import ForgotPasswordPopup from "./ForgotPasswordPopup";
 
 interface AuthManagerProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: "login" | "signup";
+  initialMode?: "login" | "signup" | "forgot-password";
 }
 
 export default function AuthManager({ isOpen, onClose, initialMode = "login" }: AuthManagerProps) {
-  const [mode, setMode] = useState<"login" | "signup">(initialMode);
+  const [mode, setMode] = useState<"login" | "signup" | "forgot-password">(initialMode);
 
   const handleSwitchToSignup = () => {
     setMode("signup");
@@ -18,6 +19,10 @@ export default function AuthManager({ isOpen, onClose, initialMode = "login" }: 
 
   const handleSwitchToLogin = () => {
     setMode("login");
+  };
+
+  const handleSwitchToForgotPassword = () => {
+    setMode("forgot-password");
   };
 
   const handleClose = () => {
@@ -31,9 +36,15 @@ export default function AuthManager({ isOpen, onClose, initialMode = "login" }: 
         isOpen={isOpen && mode === "login"}
         onClose={handleClose}
         onSwitchToSignup={handleSwitchToSignup}
+        onSwitchToForgotPassword={handleSwitchToForgotPassword}
       />
       <SignupPopup
         isOpen={isOpen && mode === "signup"}
+        onClose={handleClose}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
+      <ForgotPasswordPopup
+        isOpen={isOpen && mode === "forgot-password"}
         onClose={handleClose}
         onSwitchToLogin={handleSwitchToLogin}
       />

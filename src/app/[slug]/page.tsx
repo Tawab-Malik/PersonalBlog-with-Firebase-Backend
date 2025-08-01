@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import {useParams} from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { CalendarDays, Clock, User } from "lucide-react";
 
 import { db } from "../../../firebase/config";
@@ -81,7 +82,16 @@ export default function SingleBlog() {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
                     <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        {post!.author?.name || "Anonymous"}
+                        {post!.author?.name ? (
+                            <Link 
+                                href={`/authors/${post!.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                className="hover:text-blue-600 transition-colors cursor-pointer"
+                            >
+                                {post!.author.name}
+                            </Link>
+                        ) : (
+                            "Anonymous"
+                        )}
                     </div>
                     <div className="flex items-center gap-1">
                         <CalendarDays className="h-4 w-4" />

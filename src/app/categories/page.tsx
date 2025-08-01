@@ -227,7 +227,7 @@ function CategoriesPage() {
                                             {category.featuredPosts.map((post) => (
                                                 <Link
                                                     key={post.id}
-                                                    href={`/post/${post.slug}`}
+                                                    href={`/${post.slug}`}
                                                     className="block group/post"
                                                 >
                                                     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">

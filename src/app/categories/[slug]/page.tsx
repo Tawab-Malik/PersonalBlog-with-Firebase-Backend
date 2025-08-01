@@ -177,7 +177,7 @@ function CategoryPage() {
 
                     {/* Search */}
                     <div className="relative max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Search className="absolute left-3 top-6 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search posts in this category..."
@@ -228,7 +228,7 @@ function CategoryPage() {
                                         transition={{ delay: index * 0.1 }}
                                         className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group"
                                     >
-                                        <Link href={`/post/${post.slug}`}>
+                                        <Link href={`/${post.slug}`}>
                                             <div className="relative h-48 overflow-hidden">
                                                 <Image
                                                     src={post.coverImage}
@@ -248,7 +248,7 @@ function CategoryPage() {
                                                 </span>
                                             </div>
                                             
-                                            <Link href={`/post/${post.slug}`}>
+                                            <Link href={`/${post.slug}`}>
                                                 <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
                                                     {post.title}
                                                 </h3>
@@ -272,7 +272,12 @@ function CategoryPage() {
                                             <div className="flex items-center gap-2">
                                                 <div className="flex items-center gap-2">
                                                     <Users className="w-4 h-4 text-gray-400" />
-                                                    <span className="text-sm text-gray-500">{post.author.name}</span>
+                                                    <Link 
+                                                        href={`/authors/${post.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                                        className="text-sm text-gray-500 hover:text-blue-600 transition-colors cursor-pointer"
+                                                    >
+                                                        {post.author.name}
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </div>
@@ -326,9 +331,9 @@ function CategoryPage() {
                                     {allCategories
                                         .filter(cat => cat.slug !== slug)
                                         .slice(0, 5)
-                                        .map((category) => (
+                                        .map((category,index) => (
                                             <Link
-                                                key={category.slug}
+                                                key={index}
                                                 href={`/categories/${category.slug}`}
                                                 className="block group"
                                             >

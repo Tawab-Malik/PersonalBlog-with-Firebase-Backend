@@ -113,6 +113,10 @@ const menuItems: MenuItem[] = [
         ],
     },
     {
+        label: "Authors",
+        href: "/authors",
+    },
+    {
         label: "Contact",
         href: "/contact",
         dropdown: [
@@ -403,8 +407,13 @@ export default function Header() {
                                         </span>
                                     </div>
                                 ) : (
-                                    <Button onPress={() => setModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-blue-500 h-auto rounded-lg p-3 flex items-center gap-3 w-full">
-                                    
+                                    <Button
+                                        onPress={() => {
+                                            setModalOpen(true);
+                                            setIsOpen(false);
+                                        }}
+                                        className="bg-gradient-to-r from-purple-600 to-blue-500 h-auto rounded-lg p-3 flex items-center gap-3 w-full"
+                                    >
                                         <span className="text-white text-sm font-medium">Login</span>
                                     </Button>
                                 )}

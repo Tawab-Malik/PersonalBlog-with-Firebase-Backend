@@ -1,6 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../../../firebase/config";
 import { Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import { 
@@ -11,7 +13,8 @@ import {
     ArrowLeft,
     Edit3,
     Save,
-    X
+    X,
+
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,12 +28,14 @@ interface ProfileData {
 
  function ProfilePage() {
     const { user } = useAuth();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [profileData, setProfileData] = useState<ProfileData>({
         displayName: user?.displayName || "",
         photoURL: user?.photoURL || ""
     });
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imageUploading, setImageUploading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
@@ -65,6 +70,112 @@ interface ProfileData {
         setIsEditing(false);
         setError("");
     };
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !user) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setError("Please select a valid image file");
+            return;
+        }
+
+        // Validate file size (max 1MB for Base64)
+        if (file.size > 1 * 1024 * 1024) {
+            setError("Image size should be less than 1MB for better performance");
+            return;
+        }
+
+        setImageUploading(true);
+        setError("");
+
+        try {
+            console.log("Starting image processing...");
+            console.log("File:", file.name, "Size:", file.size, "Type:", file.type);
+            
+            // Use Base64 with compression (Firebase Storage has CORS issues)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new window.Image();
+            
+            img.onload = async () => {
+                // Calculate new dimensions (max 150x150 for smaller size)
+                const maxSize = 150;
+                let { width, height } = img;
+                
+                if (width > height) {
+                    if (width > maxSize) {
+                        height = (height * maxSize) / width;
+                        width = maxSize;
+                    }
+                } else {
+                    if (height > maxSize) {
+                        width = (width * maxSize) / height;
+                        height = maxSize;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress with higher compression
+                ctx?.drawImage(img, 0, 0, width, height);
+                const compressedDataURL = canvas.toDataURL('image/jpeg', 0.5); // 50% quality
+                
+                console.log("Base64 conversion successful, length:", compressedDataURL.length);
+                
+                if (compressedDataURL.length > 100000) { // ~100KB limit (much smaller)
+                    setError("Image is still too large. Please try a smaller image.");
+                    setImageUploading(false);
+                    return;
+                }
+                
+                // Store Base64 in Firestore and use a simple URL for Firebase Auth
+                try {
+                    // Save Base64 to Firestore
+                    await setDoc(doc(db, "userProfiles", user.uid), {
+                        photoURL: compressedDataURL,
+                        displayName: user.displayName,
+                        email: user.email,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                    
+                    // Use a simple URL for Firebase Auth (to avoid length limit)
+                    const simpleURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=random&size=150&bold=true&color=fff`;
+                    
+                    setProfileData(prev => ({ ...prev, photoURL: simpleURL }));
+                    setSuccess("Profile picture uploaded successfully!");
+                    setImageUploading(false);
+                } catch (firestoreError) {
+                    console.error("Firestore error:", firestoreError);
+                    setError("Failed to save image. Please try again.");
+                    setImageUploading(false);
+                }
+            };
+            
+            img.onerror = () => {
+                setError("Failed to process image. Please try again.");
+                setImageUploading(false);
+            };
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target?.result as string;
+            };
+            reader.readAsDataURL(file);
+        } catch (error: unknown) {
+            console.error("Image processing error:", error);
+            setError("Failed to process image. Please try again.");
+            setImageUploading(false);
+        }
+    };
+
+    const triggerImageUpload = () => {
+        fileInputRef.current?.click();
+    };
+
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -180,17 +291,35 @@ interface ProfileData {
                                             ) : (
                                                 <User className="w-16 h-16 text-gray-400" />
                                             )}
+                                            {imageUploading && (
+                                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
+                                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                                </div>
+                                            )}
                                         </div>
-                                        {isEditing && (
-                                            <button className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors shadow-lg">
+                                        {isEditing && !imageUploading && (
+                                            <button 
+                                                onClick={triggerImageUpload}
+                                                className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors shadow-lg"
+                                            >
                                                 <Camera className="w-5 h-5" />
                                             </button>
                                         )}
                                     </div>
                                     {isEditing && (
-                                        <p className="text-sm text-gray-500 mt-2">
-                                            Click the camera icon to change your profile picture
-                                        </p>
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500 mb-2">
+                                                {imageUploading ? "Uploading image..." : "Click the camera icon to change your profile picture"}
+                                            </p>
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className="hidden"
+                                                disabled={imageUploading}
+                                            />
+                                        </div>
                                     )}
                                 </div>
 

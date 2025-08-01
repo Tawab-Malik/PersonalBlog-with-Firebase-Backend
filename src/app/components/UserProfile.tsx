@@ -57,7 +57,7 @@ export default function UserProfile() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50"
+            className="absolute top-full right-0 mt-2 w-68 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50"
           >
             {/* User Info */}
             <div className="px-4 py-3 border-b border-gray-100">
