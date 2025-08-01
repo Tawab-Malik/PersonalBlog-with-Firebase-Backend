@@ -54,8 +54,22 @@ export const createNotification = async (params: CreateNotificationParams) => {
                 return;
         }
 
-        // Create notification data object, only including defined fields
-        const notificationData: any = {
+        // صرف متعین شدہ فیلڈز کے ساتھ notification data object بنائیں
+        interface NotificationData {
+            type: string;
+            title: string;
+            message: string;
+            postSlug: string;
+            postTitle: string;
+            authorName: string;
+            authorEmail: string;
+            recipientEmail: string;
+            createdAt: ReturnType<typeof serverTimestamp>;
+            isRead: boolean;
+            commentId?: string;
+        }
+
+        const notificationData: NotificationData = {
             type,
             title,
             message,
