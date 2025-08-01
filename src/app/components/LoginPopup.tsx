@@ -222,7 +222,7 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-6 right-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X size={24} />
             </button>
@@ -281,7 +281,7 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
               <div className="relative">
-                <Mail className="absolute left-3 top-3.5 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Mail className="absolute left-3 top-6 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="email"
                   name="email"
@@ -295,7 +295,7 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
 
               {/* Password Field */}
               <div className="relative">
-                <Lock className="absolute left-3 top-3.5 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="absolute left-3 top-6 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -308,7 +308,7 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup }: LoginP
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-6 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>

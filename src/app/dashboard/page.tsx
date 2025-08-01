@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { collection, getDocs, deleteDoc, doc, query, where } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, where, updateDoc, increment } from "firebase/firestore";
 import { db, auth } from "../../../firebase/config";
 import { Button } from "@heroui/react";
 import Link from "next/link";
@@ -45,6 +45,7 @@ interface Post {
     coverImage: string;
     readingTime: string;
     userId?: string; // Add userId field
+    userName?: string; // Add userName field
 }
 
 function AdminDashboard() {
@@ -80,6 +81,25 @@ function AdminDashboard() {
                     } as Post);
                 });
 
+                // Fetch user names for posts
+                if (isAdmin && postsData.length > 0) {
+                    const usersQuery = collection(db, "users");
+                    const usersSnapshot = await getDocs(usersQuery);
+                    const usersMap = new Map();
+                    
+                    usersSnapshot.forEach((userDoc) => {
+                        const userData = userDoc.data();
+                        usersMap.set(userDoc.id, userData.displayName || "Unknown User");
+                    });
+
+                    // Add user names to posts
+                    postsData.forEach(post => {
+                        if (post.userId) {
+                            post.userName = usersMap.get(post.userId) || "Unknown User";
+                        }
+                    });
+                }
+
                 setPosts(postsData);
                 setLoading(false);
             } catch (error) {
@@ -104,6 +124,15 @@ function AdminDashboard() {
                 }
 
                 await deleteDoc(doc(db, "posts", id));
+                
+                // Decrement user's post count
+                if (postToDelete?.userId) {
+                    const userRef = doc(db, "users", postToDelete.userId);
+                    await updateDoc(userRef, {
+                        postCount: increment(-1)
+                    });
+                }
+                
                 setPosts(posts.filter(post => post.id !== id));
             } catch (error) {
                 console.error("Error deleting post:", error);
@@ -233,9 +262,27 @@ function AdminDashboard() {
                                 <div className="p-6">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Tag className="w-4 h-4 text-gray-400" />
-                                        <span className="text-sm text-gray-500">
-                                            {post.categories?.[0] || "Uncategorized"}
-                                        </span>
+                                        {post.categories && post.categories.length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {post.categories.slice(0, 2).map((category, index) => (
+                                                    <Link
+                                                        key={index}
+                                                        href={`/categories/${category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                                        className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                                    >
+                                                        {category}
+                                                        {index < Math.min(post.categories.length, 2) - 1 && ", "}
+                                                    </Link>
+                                                ))}
+                                                {post.categories.length > 2 && (
+                                                    <span className="text-sm text-gray-500">
+                                                        +{post.categories.length - 2} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-gray-500">Uncategorized</span>
+                                        )}
                                     </div>
                                     
                                     <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2">
@@ -253,10 +300,10 @@ function AdminDashboard() {
                                         </div>
                                     </div>
                                     
-                                    {isAdmin && post.userId && (
+                                    {isAdmin && post.userName && (
                                         <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg">
                                             <Users className="w-4 h-4 text-gray-400" />
-                                            <span className="text-xs text-gray-500">User ID: {post.userId}</span>
+                                            <span className="text-xs text-gray-500">Author: {post.userName}</span>
                                         </div>
                                     )}
                                     

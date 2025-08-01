@@ -107,7 +107,15 @@ export default function LastGridSection() {
                                 <Image src={post.image} alt={post.title} height={200} width={400} className="rounded-lg h-full transition-transform duration-300" />
                                 {/* <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" /> */}
                                 <div className=" -mt-3 px-4">
-                                    <span className="bg-[#F4796C] text-white px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider">{post.category}</span>
+                                    <Link
+                                        href={`/categories/${post.category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                        className="inline-block"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <span className="bg-[#F4796C] text-white px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider hover:bg-[#e65a4d] transition-colors cursor-pointer">
+                                            {post.category}
+                                        </span>
+                                    </Link>
                                     <h2 className="text-base md:text-xl text-center  font-bold mt-4 text-primary transition-colors duration-200">{post.title}</h2>
                                     <p className="flex gap-x-2 items-center justify-center text-[#6D757F] text-sm font-semibold pt-2.5">
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -136,17 +144,19 @@ export default function LastGridSection() {
                 </div>
                 <div className="grid grid-cols-2 justify-start gap-3 items-start mt-10">
                     {categories.map((category, id) => (
-
-                        <Button
+                        <Link
                             key={id}
-                            className={`px-4 py-2 text-sm rounded-md border w-full transition 
-                                 bg-primary text-white hover:!bg-[#F4796C]"
-                                `}
+                            href={category === "All" ? "/categories" : `/categories/${category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                            className="block"
                         >
-                            {category}
-                        </Button>
-
-
+                            <Button
+                                className={`px-4 py-2 text-sm rounded-md border w-full transition 
+                                     bg-primary text-white hover:!bg-[#F4796C]"
+                                    `}
+                            >
+                                {category}
+                            </Button>
+                        </Link>
                     ))}
                 </div>
 

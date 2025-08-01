@@ -8,6 +8,7 @@ import { Button } from "@heroui/react";
 import Loader from "@/app/components/Loader";
 import { useAuth } from "@/app/hooks/useAuth";
 import { ArrowLeft, Save, Image as ImageIcon, Calendar, Clock, FileText, Hash, Type, Edit3 } from "lucide-react";
+import Image from "next/image";
 
 function EditPostForm() {
     const { id } = useParams();
@@ -265,7 +266,9 @@ function EditPostForm() {
                                     {/* Image Preview */}
                                     {previewImage && (
                                         <div className="mt-3">
-                                            <img
+                                            <Image
+                                                width={100}
+                                                height={100}
                                                 src={previewImage}
                                                 alt="Preview"
                                                 className="w-full h-32 object-cover rounded-lg border"

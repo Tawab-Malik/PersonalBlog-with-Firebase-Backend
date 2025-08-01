@@ -1,14 +1,15 @@
 "use client";
 import { useState } from "react";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../../../../firebase/config";
 import DashboardAuthWrapper from "@/app/components/DashboardAuthWrapper";
 import { Button } from "@heroui/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
-import { ArrowLeft, Upload, Image as ImageIcon, Calendar, Clock, FileText, Hash, Type } from "lucide-react";
+import { ArrowLeft, Upload, Image as ImageIcon, Calendar, Clock, FileText, Hash, Type, Tag, Plus, X } from "lucide-react";
 import Loader from "@/app/components/Loader";
+import Image from "next/image";
 
 interface FormData {
     title: string;
@@ -18,12 +19,15 @@ interface FormData {
     coverImage: string;
     publishedAt: string;
     readingTime: string;
+    categories: string[];
 }
 
 function AddPostForm() {
   const { user, loading, isAdmin } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const router = useRouter();
 
     const {
@@ -59,17 +63,27 @@ function AddPostForm() {
                 ...data,
                 slug: data.slug || generateSlug(data.title),
                 userId: user.uid,
+                userName: user.displayName || user.email?.split('@')[0] || "Anonymous",
                 author: {
                     name: user.displayName || user.email?.split('@')[0] || "Anonymous",
                     avatar: user.photoURL || "/default-avatar.png"
                 },
-                categories: [],
+                categories: selectedCategories,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 isAdmin: isAdmin
             };
 
             await addDoc(collection(db, "posts"), newPost);
+            
+            // Increment user's post count
+            if (user?.uid) {
+                const userRef = doc(db, "users", user.uid);
+                await updateDoc(userRef, {
+                    postCount: increment(1)
+                });
+            }
+            
             alert("Post created successfully!");
             router.push("/dashboard");
         } catch (error) {
@@ -223,8 +237,10 @@ function AddPostForm() {
                                     {/* Image Preview */}
                                     {previewImage && (
                                         <div className="mt-3">
-                                            <img
+                                            <Image
                                                 src={previewImage}
+                                                width={100}
+                                                height={100}
                                                 alt="Preview"
                                                 className="w-full h-32 object-cover rounded-lg border"
                                                 onError={(e) => {
@@ -272,6 +288,75 @@ function AddPostForm() {
                                             {errors.readingTime.message}
                                         </p>
                                     )}
+                                </div>
+
+                                {/* Categories */}
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                        <Tag className="w-4 h-4" />
+                                        Categories
+                                    </label>
+                                    
+                                    {/* Add New Category */}
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newCategory}
+                                            onChange={(e) => setNewCategory(e.target.value)}
+                                            placeholder="Add a new category..."
+                                            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (newCategory.trim() && !selectedCategories.includes(newCategory.trim())) {
+                                                        setSelectedCategories([...selectedCategories, newCategory.trim()]);
+                                                        setNewCategory("");
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (newCategory.trim() && !selectedCategories.includes(newCategory.trim())) {
+                                                    setSelectedCategories([...selectedCategories, newCategory.trim()]);
+                                                    setNewCategory("");
+                                                }
+                                            }}
+                                            className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* Selected Categories */}
+                                    {selectedCategories.length > 0 && (
+                                        <div className="space-y-2">
+                                            <p className="text-xs text-gray-500">Selected Categories:</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedCategories.map((category, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm"
+                                                    >
+                                                        <Tag className="w-3 h-3" />
+                                                        <span>{category}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedCategories(selectedCategories.filter((_, i) => i !== index))}
+                                                            className="text-blue-500 hover:text-blue-700"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <p className="text-xs text-gray-500">
+                                        Press Enter or click the + button to add categories
+                                    </p>
                                 </div>
 
                                 {/* Action Buttons */}

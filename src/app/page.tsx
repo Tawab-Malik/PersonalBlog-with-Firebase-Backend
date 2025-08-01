@@ -8,8 +8,7 @@ export default function Home() {
 
     return (
         <>
-            <div className=" bg-white ">
-            
+            <div className="bg-white">
                 <HeroSection />
                 <About />
                 <Trending />
