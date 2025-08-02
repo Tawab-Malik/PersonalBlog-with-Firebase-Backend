@@ -6,7 +6,7 @@ import { Button } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
 import DashboardAuthWrapper from "@/app/components/DashboardAuthWrapper";
-import { Plus, Edit3, Trash2, Eye, Search } from "lucide-react";
+import { Plus, Edit3, Trash2, Eye, Search, FileText } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
 import Loader from "../../components/Loader";
 
@@ -25,6 +25,7 @@ interface Post {
 function PostsManagement() {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const { user, loading: userLoading } = useAuth();
 
@@ -50,6 +51,7 @@ function PostsManagement() {
                 setPosts(postsData);
             } catch (error) {
                 console.error("Error fetching posts:", error);
+                setError("Failed to load posts. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -100,6 +102,13 @@ function PostsManagement() {
                         </Link>
                     </div>
 
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-red-600 text-sm">{error}</p>
+                        </div>
+                    )}
+
                     {/* Search */}
                     <div className="mb-6">
                         <div className="relative">
@@ -114,6 +123,11 @@ function PostsManagement() {
                         </div>
                     </div>
 
+                    {/* Posts Count */}
+                    <div className="mb-4 text-sm text-gray-600">
+                        {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''} found
+                    </div>
+
                     {/* Posts Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredPosts.map((post) => (
@@ -124,24 +138,42 @@ function PostsManagement() {
                                         alt={post.title}
                                         fill
                                         className="object-cover"
+                                        onError={(e) => {
+                                            e.currentTarget.src = "/images/default-post.jpg";
+                                        }}
                                     />
+                                    {/* Status Badge */}
+                                    <div className="absolute top-2 right-2">
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                            post.status === 'published' 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : post.status === 'draft'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-gray-100 text-gray-800'
+                                        }`}>
+                                            {post.status || 'draft'}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                                         {post.title}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4">
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                                         {post.excerpt}
                                     </p>
                                     <div className="flex justify-between items-center">
+                                        <div className="text-xs text-gray-500">
+                                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'No date'}
+                                        </div>
                                         <div className="flex space-x-2">
                                             <Link href={`/${post.slug}`}>
-                                                <Button size="sm" variant="ghost">
+                                                <Button size="sm" variant="ghost" title="View Post">
                                                     <Eye className="w-4 h-4" />
                                                 </Button>
                                             </Link>
                                             <Link href={`/dashboard/edit/${post.id}`}>
-                                                <Button size="sm" variant="ghost">
+                                                <Button size="sm" variant="ghost" title="Edit Post">
                                                     <Edit3 className="w-4 h-4" />
                                                 </Button>
                                             </Link>
@@ -150,6 +182,7 @@ function PostsManagement() {
                                                 variant="ghost"
                                                 onClick={() => handleDelete(post.id)}
                                                 className="text-red-600 hover:text-red-700"
+                                                title="Delete Post"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
@@ -162,15 +195,23 @@ function PostsManagement() {
 
                     {filteredPosts.length === 0 && !loading && (
                         <div className="text-center py-12">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No posts found</h3>
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <FileText className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                {searchTerm ? 'No posts found' : 'No posts yet'}
+                            </h3>
                             <p className="text-gray-600 mb-4">
-                                {searchTerm ? 'No posts found matching your search' : 'No posts have been created yet'}
+                                {searchTerm 
+                                    ? 'No posts found matching your search. Try different keywords.' 
+                                    : 'Start creating your first post to share your thoughts with the world.'
+                                }
                             </p>
                             {!searchTerm && (
                                 <Link href="/dashboard/add">
                                     <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Add First Post
+                                        Create Your First Post
                                     </Button>
                                 </Link>
                             )}
