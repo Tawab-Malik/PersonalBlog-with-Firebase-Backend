@@ -30,7 +30,23 @@ interface Post {
     author: {
         name: string;
         avatar: string;
+        email?: string;
     };
+}
+
+interface User {
+    uid: string;
+    username: string;
+    email: string;
+    profileImage: string;
+    bio: string;
+    location?: string;
+    website?: string;
+    twitter?: string;
+    linkedin?: string;
+    github?: string;
+    createdAt: string;
+    isAdmin: boolean;
 }
 
 interface Category {
@@ -44,10 +60,24 @@ interface Category {
 function CategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
+    const [users, setUsers] = useState<User[]>([]);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+                // Get all users first
+                const usersQuery = collection(db, "users");
+                const usersSnapshot = await getDocs(usersQuery);
+                const usersData: User[] = [];
+                
+                usersSnapshot.forEach((doc) => {
+                    usersData.push({
+                        uid: doc.id,
+                        ...doc.data()
+                    } as User);
+                });
+                setUsers(usersData);
+
                 const postsQuery = collection(db, "posts");
                 const querySnapshot = await getDocs(postsQuery);
                 const postsData: Post[] = [];
@@ -93,6 +123,12 @@ function CategoriesPage() {
 
         fetchCategories();
     }, []);
+
+    // Function to get author username by email
+    const getAuthorUsername = (authorEmail: string) => {
+        const user = users.find(u => u.email === authorEmail);
+        return user ? user.username : authorEmail.split('@')[0];
+    };
 
     if (loading) {
         return (
@@ -246,7 +282,7 @@ function CategoriesPage() {
                                                             <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                                                                 <div className="flex items-center gap-1">
                                                                     <Users className="w-3 h-3" />
-                                                                    <span>{post.author.name}</span>
+                                                                    <span>{post.author.email ? getAuthorUsername(post.author.email) : post.author.name}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1">
                                                                     <Clock className="w-3 h-3" />

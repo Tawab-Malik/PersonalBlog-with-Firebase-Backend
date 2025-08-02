@@ -47,10 +47,19 @@ interface ProfileData {
         setSuccess("");
 
         try {
+            // Check if photoURL is too long for Firebase Auth (max 2048 characters)
+            let authPhotoURL = profileData.photoURL;
+            if (profileData.photoURL && profileData.photoURL.length > 2048) {
+                // If photoURL is too long, don't update it in Firebase Auth
+                // Keep the existing photoURL or use a default one
+                authPhotoURL = user.photoURL || "";
+                console.log("PhotoURL too long for Firebase Auth, keeping existing or default");
+            }
+
             // Update Firebase Auth profile
             await updateProfile(user, {
                 displayName: profileData.displayName,
-                photoURL: profileData.photoURL
+                photoURL: authPhotoURL
             });
 
             // Also update Firestore with latest data
@@ -58,6 +67,14 @@ interface ProfileData {
                 photoURL: profileData.photoURL,
                 displayName: profileData.displayName,
                 email: user.email,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+
+            // Also update the main users collection
+            await setDoc(doc(db, "users", user.uid), {
+                displayName: profileData.displayName,
+                email: user.email,
+                photoURL: authPhotoURL, // Use the auth-compatible photoURL
                 updatedAt: new Date().toISOString()
             }, { merge: true });
 
@@ -109,8 +126,8 @@ interface ProfileData {
             const img = new window.Image();
             
             img.onload = async () => {
-                // Calculate new dimensions (max 150x150 for smaller size)
-                const maxSize = 150;
+                // Calculate new dimensions (max 100x100 for smaller size)
+                const maxSize = 100;
                 let { width, height } = img;
                 
                 if (width > height) {
@@ -130,11 +147,11 @@ interface ProfileData {
                 
                 // Draw and compress with higher compression
                 ctx?.drawImage(img, 0, 0, width, height);
-                const compressedDataURL = canvas.toDataURL('image/jpeg', 0.5); // 50% quality
+                const compressedDataURL = canvas.toDataURL('image/jpeg', 0.3); // 30% quality for smaller size
                 
                 console.log("Base64 conversion successful, length:", compressedDataURL.length);
                 
-                if (compressedDataURL.length > 100000) { // ~100KB limit (much smaller)
+                if (compressedDataURL.length > 50000) { // ~50KB limit (much smaller)
                     setError("Image is still too large. Please try a smaller image.");
                     setImageUploading(false);
                     return;

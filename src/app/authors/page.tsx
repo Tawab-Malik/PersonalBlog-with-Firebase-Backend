@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,21 +20,24 @@ import Loader from "../components/Loader";
 
 interface Author {
     uid: string;
-    username: string;
+    username?: string;
+    displayName?: string;
     email: string;
-    profileImage: string;
-    bio: string;
+    profileImage?: string;
+    photoURL?: string;
+    bio?: string;
     location?: string;
     website?: string;
     twitter?: string;
     linkedin?: string;
     github?: string;
-    createdAt: string;
-    isAdmin: boolean;
+    createdAt?: string;
+    isAdmin?: boolean;
 }
 
 interface Post {
     id: string;
+    title?: string;
     author: {
         name?: string;
         email?: string;
@@ -63,6 +66,26 @@ function AuthorsPage() {
                     } as Author);
                 });
 
+                // Also fetch from userProfiles collection for additional data
+                for (let i = 0; i < authorsData.length; i++) {
+                    try {
+                        const userProfileDoc = await getDoc(doc(db, "userProfiles", authorsData[i].uid));
+                        if (userProfileDoc.exists()) {
+                            const profileData = userProfileDoc.data();
+                            // Update author data with profile data
+                            if (profileData.photoURL) {
+                                authorsData[i].photoURL = profileData.photoURL;
+                            }
+                            if (profileData.displayName) {
+                                authorsData[i].displayName = profileData.displayName;
+                            }
+                        }
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    } catch (error) {
+                        console.log("No userProfiles data found for user:", authorsData[i].uid);
+                    }
+                }
+
                 // Get all posts to count author posts
                 const postsQuery = collection(db, "posts");
                 const postsSnapshot = await getDocs(postsQuery);
@@ -88,11 +111,18 @@ function AuthorsPage() {
     }, []);
 
     const getAuthorPostCount = (authorEmail: string) => {
-        return posts.filter(post => post.author?.email === authorEmail).length;
+        const count = posts.filter(post => {
+            // Check if post has author object and email matches
+            const hasAuthor = post.author && typeof post.author === 'object';
+            const emailMatches = hasAuthor && post.author.email === authorEmail;
+            return emailMatches;
+        }).length;
+        
+        return count;
     };
 
     const filteredAuthors = authors.filter(author =>
-        author.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (author.displayName || author.username || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         author.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (author.bio && author.bio.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -179,7 +209,7 @@ function AuthorsPage() {
                                 <div>
                                     <p className="text-sm text-gray-600">Active Writers</p>
                                     <p className="text-2xl font-bold text-gray-800">
-                                        {authors.filter(author => getAuthorPostCount(author.username) > 0).length}
+                                        {authors.filter(author => getAuthorPostCount(author.email) > 0).length}
                                     </p>
                                 </div>
                             </div>
@@ -206,7 +236,8 @@ function AuthorsPage() {
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredAuthors.map((author, index) => {
                             const postCount = getAuthorPostCount(author.email);
-                            const authorSlug = author.username.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                            const nameToUse = author.displayName || author.username || "unknown";
+                            const authorSlug = nameToUse.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                             
                             return (
                                 <motion.div
@@ -220,10 +251,10 @@ function AuthorsPage() {
                                         {/* Author Header */}
                                         <div className="text-center mb-6">
                                             <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mx-auto mb-4">
-                                                {author.profileImage ? (
+                                                {(author.photoURL || author.profileImage) ? (
                                                     <Image
-                                                        src={author.profileImage}
-                                                        alt={author.username}
+                                                        src={author.photoURL || author.profileImage || ""}
+                                                        alt={author.displayName || author.username || "Author"}
                                                         width={80}
                                                         height={80}
                                                         className="w-full h-full object-cover"
@@ -232,7 +263,7 @@ function AuthorsPage() {
                                                     <User className="w-10 h-10 text-gray-400" />
                                                 )}
                                             </div>
-                                            <h3 className="text-xl font-bold text-gray-800 mb-1">{author.username}</h3>
+                                            <h1 className="text-3xl font-bold text-gray-800">{author.displayName || author.username || "Unknown Author"}</h1>
                                             {author.isAdmin && (
                                                 <span className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-3 py-1 rounded-full mb-2">
                                                     Admin
@@ -261,7 +292,7 @@ function AuthorsPage() {
                                             </div>
                                             <div className="text-center">
                                                 <p className="text-sm text-gray-600">
-                                                    {new Date(author.createdAt).toLocaleDateString()}
+                                                    {author.createdAt ? new Date(author.createdAt).toLocaleDateString() : "Unknown"}
                                                 </p>
                                                 <p className="text-xs text-gray-500">Joined</p>
                                             </div>

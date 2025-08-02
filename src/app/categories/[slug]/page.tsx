@@ -33,7 +33,23 @@ interface Post {
     author: {
         name: string;
         avatar: string;
+        email?: string;
     };
+}
+
+interface User {
+    uid: string;
+    username: string;
+    email: string;
+    profileImage: string;
+    bio: string;
+    location?: string;
+    website?: string;
+    twitter?: string;
+    linkedin?: string;
+    github?: string;
+    createdAt: string;
+    isAdmin: boolean;
 }
 
 interface Category {
@@ -46,6 +62,7 @@ function CategoryPage() {
     const { slug } = useParams();
     const [posts, setPosts] = useState<Post[]>([]);
     const [allCategories, setAllCategories] = useState<Category[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
@@ -53,6 +70,19 @@ function CategoryPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Get all users first
+                const usersQuery = collection(db, "users");
+                const usersSnapshot = await getDocs(usersQuery);
+                const usersData: User[] = [];
+                
+                usersSnapshot.forEach((doc) => {
+                    usersData.push({
+                        uid: doc.id,
+                        ...doc.data()
+                    } as User);
+                });
+                setUsers(usersData);
+
                 const postsQuery = collection(db, "posts");
                 const querySnapshot = await getDocs(postsQuery);
                 const postsData: Post[] = [];
@@ -112,6 +142,18 @@ function CategoryPage() {
             fetchData();
         }
     }, [slug]);
+
+    // Function to get author username by email
+    const getAuthorUsername = (authorEmail: string) => {
+        const user = users.find(u => u.email === authorEmail);
+        return user ? user.username : authorEmail.split('@')[0];
+    };
+
+    // Function to get author slug by email
+    const getAuthorSlug = (authorEmail: string) => {
+        const user = users.find(u => u.email === authorEmail);
+        return user ? user.username.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : authorEmail.split('@')[0].toLowerCase();
+    };
 
     const filteredPosts = posts.filter(post =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -273,10 +315,10 @@ function CategoryPage() {
                                                 <div className="flex items-center gap-2">
                                                     <Users className="w-4 h-4 text-gray-400" />
                                                     <Link 
-                                                        href={`/authors/${post.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                                        href={`/authors/${post.author.email ? getAuthorSlug(post.author.email) : post.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
                                                         className="text-sm text-gray-500 hover:text-blue-600 transition-colors cursor-pointer"
                                                     >
-                                                        {post.author.name}
+                                                        {post.author.email ? getAuthorUsername(post.author.email) : post.author.name}
                                                     </Link>
                                                 </div>
                                             </div>

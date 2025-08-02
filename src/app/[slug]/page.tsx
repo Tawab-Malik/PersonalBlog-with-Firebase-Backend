@@ -14,6 +14,23 @@ import CommentLikeButton from "@/app/components/CommentLikeButton";
 import { createNotification } from "@/lib/notificationService";
 import { notFound } from "next/navigation";
 
+interface User {
+    uid: string;
+    username?: string;
+    displayName?: string;
+    email: string;
+    profileImage?: string;
+    photoURL?: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+    twitter?: string;
+    linkedin?: string;
+    github?: string;
+    createdAt?: string;
+    isAdmin?: boolean;
+}
+
 interface Author {
     name: string;
     avatar?: string;
@@ -52,12 +69,51 @@ export default function SingleBlog() {
     const { user } = useAuth();
     const [post, setPost] = useState<Post | null>(null);
     const [comments, setComments] = useState<Comment[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [commentLoading, setCommentLoading] = useState(false);
     const [newComment, setNewComment] = useState("");
     const [shouldShowNotFound, setShouldShowNotFound] = useState(false);
 
+    // Helper functions for author data
+    const getAuthorUsername = (authorEmail: string) => {
+        // console.log("🔍 getAuthorUsername called with:", authorEmail);
+        // console.log("📋 Available users:", users.map(u => ({ email: u.email, displayName: u.displayName, username: u.username })));
+        const user = users.find(u => u.email === authorEmail);
+        // console.log("👤 Found user:", user);
+        return user ? (user.displayName || user.username) : authorEmail.split('@')[0];
+    };
+
+    const getAuthorSlug = (authorEmail: string) => {
+        const user = users.find(u => u.email === authorEmail);
+        const nameToUse = user ? (user.displayName || user.username || authorEmail.split('@')[0]) : authorEmail.split('@')[0];
+        return nameToUse?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') ?? '';
+    };
+
     useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                console.log("🔄 Fetching users...");
+                const usersQuery = collection(db, "users");
+                const usersSnapshot = await getDocs(usersQuery);
+                const usersData: User[] = [];
+                
+                usersSnapshot.forEach((doc) => {
+                    const userData = {
+                        uid: doc.id,
+                        ...doc.data()
+                    } as User;
+                    usersData.push(userData);
+                    console.log("👤 User loaded:", { uid: userData.uid, email: userData.email, displayName: userData.displayName, username: userData.username });
+                });
+                
+                console.log("📊 Total users loaded:", usersData.length);
+                setUsers(usersData);
+            } catch (error) {
+                console.error("❌ Error fetching users:", error);
+            }
+        };
+
         const fetchPost = async () => {
             try {
                 const q = query(
@@ -131,6 +187,7 @@ export default function SingleBlog() {
         };
 
         if (params.slug) {
+            fetchUsers();
             fetchPost();
             fetchComments();
         }
@@ -280,16 +337,35 @@ export default function SingleBlog() {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
                     <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        {post!.author?.name ? (
-                            <Link 
-                                href={`/authors/${post!.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
-                                className="hover:text-blue-600 transition-colors cursor-pointer"
-                            >
-                                {post!.author.name}
-                            </Link>
-                        ) : (
-                            "Anonymous"
-                        )}
+                        {(() => {
+                            console.log("📝 Post author data:", post!.author);
+                            console.log("👥 Users loaded:", users.length);
+                            
+                            if (post!.author?.email) {
+                                console.log("✅ Using email-based logic for:", post!.author.email);
+                                return (
+                                    <Link 
+                                        href={`/authors/${getAuthorSlug(post!.author.email)}`}
+                                        className="hover:text-blue-600 transition-colors cursor-pointer"
+                                    >
+                                        {getAuthorUsername(post!.author.email)}
+                                    </Link>
+                                );
+                            } else if (post!.author?.name) {
+                                console.log("⚠️ Using name-based fallback for:", post!.author.name);
+                                return (
+                                    <Link 
+                                        href={`/authors/${post!.author.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                        className="hover:text-blue-600 transition-colors cursor-pointer"
+                                    >
+                                        {post!.author.name}
+                                    </Link>
+                                );
+                            } else {
+                                console.log("❌ No author data found");
+                                return "Anonymous";
+                            }
+                        })()}
                     </div>
                     <div className="flex items-center gap-1">
                         <CalendarDays className="h-4 w-4" />

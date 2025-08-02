@@ -30,8 +30,11 @@ export const useAuth = () => {
               postCount: 0
             });
           } else {
-            // Update last login
+            // Update user data including displayName and email
             await setDoc(userRef, {
+              displayName: user.displayName || user.email?.split('@')[0] || "Anonymous",
+              email: user.email,
+              photoURL: user.photoURL || "",
               lastLogin: new Date().toISOString()
             }, { merge: true });
           }

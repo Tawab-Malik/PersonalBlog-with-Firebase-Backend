@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 import { db } from "../../../../firebase/config";
 import Link from "next/link";
 import Image from "next/image";
@@ -41,17 +41,19 @@ interface Post {
 
 interface Author {
     uid: string;
-    username: string;
+    username?: string;
+    displayName?: string;
     email: string;
-    profileImage: string;
-    bio: string;
+    profileImage?: string;
+    photoURL?: string;
+    bio?: string;
     location?: string;
     website?: string;
     twitter?: string;
     linkedin?: string;
     github?: string;
-    createdAt: string;
-    isAdmin: boolean;
+    createdAt?: string;
+    isAdmin?: boolean;
 }
 
 function AuthorPage() {
@@ -71,7 +73,8 @@ function AuthorPage() {
                 let foundAuthor: Author | null = null;
                 usersSnapshot.forEach((doc) => {
                     const userData = doc.data();
-                    const userSlug = userData.username?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                    const nameToUse = userData.displayName || userData.username;
+                    const userSlug = nameToUse?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                     if (userSlug === slug) {
                         foundAuthor = {
                             uid: doc.id,
@@ -79,6 +82,26 @@ function AuthorPage() {
                         } as Author;
                     }
                 });
+
+                if (foundAuthor) {
+                    // userProfiles کلیکشن سے اضافی ڈیٹا حاصل کریں
+                    try {
+                        const userProfileDoc = await getDoc(doc(db, "userProfiles", (foundAuthor as Author).uid));
+                        if (userProfileDoc.exists()) {
+                            const profileData = userProfileDoc.data() as Partial<Author>;
+                            // پروفائل ڈیٹا کے ساتھ foundAuthor کو اپڈیٹ کریں
+                            if ('photoURL' in profileData && typeof profileData.photoURL === 'string') {
+                                (foundAuthor as Author).photoURL = profileData.photoURL;
+                            }
+                            if ('displayName' in profileData && typeof profileData.displayName === 'string') {
+                                (foundAuthor as Author).displayName = profileData.displayName;
+                            }
+                        }
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    } catch (error) {
+                        console.log("No userProfiles data found for this user" );
+                    }
+                }
 
                 if (!foundAuthor) {
                     setError("Author not found");
@@ -95,8 +118,8 @@ function AuthorPage() {
                 
                 postsSnapshot.forEach((doc) => {
                     const postData = doc.data();
-                    // Match by author name instead of email since JSON data doesn't have email
-                    if (foundAuthor && postData.author?.name === foundAuthor.username) {
+                    // Match by author email for consistency
+                    if (foundAuthor && postData.author?.email === foundAuthor.email) {
                         authorPosts.push({
                             id: doc.id,
                             ...postData
@@ -149,6 +172,7 @@ function AuthorPage() {
         );
     }
 
+      console.log(author)
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Header */}
@@ -163,10 +187,10 @@ function AuthorPage() {
                         </Link>
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                                {author.profileImage ? (
+                                {(author.photoURL || author.profileImage) ? (
                                     <Image
-                                        src={author.profileImage}
-                                        alt={author.username}
+                                        src={author.photoURL || author.profileImage || ""}
+                                        alt={author.displayName || author.username || ""}
                                         width={64}
                                         height={64}
                                         className="w-full h-full object-cover"
@@ -176,7 +200,7 @@ function AuthorPage() {
                                 )}
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-800">{author.username}</h1>
+                                <h1 className="text-3xl font-bold text-gray-800">{author.displayName || author.username}</h1>
                                 <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                                     <div className="flex items-center gap-1">
                                         <FileText className="w-4 h-4" />
@@ -184,7 +208,7 @@ function AuthorPage() {
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <Calendar className="w-4 h-4" />
-                                        <span>Joined {new Date(author.createdAt).toLocaleDateString()}</span>
+                                        <span>Joined {author.createdAt ? new Date(author.createdAt).toLocaleDateString() : "Unknown"}</span>
                                     </div>
                                 </div>
                             </div>
@@ -200,10 +224,10 @@ function AuthorPage() {
                         <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6">
                             <div className="text-center mb-6">
                                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mx-auto mb-4">
-                                    {author.profileImage ? (
+                                    {(author.photoURL || author.profileImage) ? (
                                         <Image
-                                            src={author.profileImage}
-                                            alt={author.username}
+                                            src={author.photoURL || author.profileImage || ""}
+                                            alt={author.displayName || author.username || ""}
                                             width={96}
                                             height={96}
                                             className="w-full h-full object-cover"
@@ -212,7 +236,7 @@ function AuthorPage() {
                                         <User className="w-12 h-12 text-gray-400" />
                                     )}
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-800 mb-1">{author.username}</h2>
+                                <h2 className="text-xl font-bold text-gray-800 mb-1">{author.displayName || author.username}</h2>
                                 {author.isAdmin && (
                                     <span className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-3 py-1 rounded-full mb-2">
                                         Admin
@@ -295,7 +319,7 @@ function AuthorPage() {
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-600">Member Since</span>
                                         <span className="font-semibold text-gray-800">
-                                            {new Date(author.createdAt).toLocaleDateString()}
+                                            {author.createdAt ? new Date(author.createdAt).toLocaleDateString() : "Unknown"}
                                         </span>
                                     </div>
                                 </div>
@@ -306,7 +330,7 @@ function AuthorPage() {
                     {/* Posts */}
                     <div className="lg:col-span-3">
                         <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Posts by {author.username}</h2>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Posts by {author.displayName || author.username}</h2>
                             <p className="text-gray-600">Latest articles and insights</p>
                         </div>
 
@@ -321,7 +345,7 @@ function AuthorPage() {
                                 </div>
                                 <h3 className="text-2xl font-semibold text-gray-700 mb-3">No Posts Yet</h3>
                                 <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                                    {author.username} hasn&apos;t published any posts yet. Check back later for new content!
+                                    {author.displayName || author.username} hasn&apos;t published any posts yet. Check back later for new content!
                                 </p>
                             </motion.div>
                         ) : (

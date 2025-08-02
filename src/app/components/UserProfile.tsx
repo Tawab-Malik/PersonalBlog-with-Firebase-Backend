@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, LogOut, Settings, BookOpen, ChevronDown, Shield } from "lucide-react";
-import { auth } from "../../../firebase/config";
+import { auth, db } from "../../../firebase/config";
 import { signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useAuth } from "@/app/hooks/useAuth";
 import Image from "next/image";
@@ -11,6 +12,28 @@ import Image from "next/image";
 export default function UserProfile() {
   const { user, isAdmin } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [profilePhotoURL, setProfilePhotoURL] = useState<string>("");
+
+  // Load profile photo from userProfiles collection
+  useEffect(() => {
+    const loadProfilePhoto = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const userProfileDoc = await getDoc(doc(db, "userProfiles", user.uid));
+        if (userProfileDoc.exists()) {
+          const profileData = userProfileDoc.data();
+          if (profileData.photoURL) {
+            setProfilePhotoURL(profileData.photoURL);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading profile photo:", error);
+      }
+    };
+
+    loadProfilePhoto();
+  }, [user?.uid]);
 
   const handleSignOut = async () => {
     try {
@@ -32,9 +55,9 @@ export default function UserProfile() {
         className="flex items-center gap-2 text-black hover:bg-primary-600 px-3 py-2 rounded-lg transition-colors duration-200"
       >
         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-          {user.photoURL ? (
+          {(profilePhotoURL || user.photoURL) ? (
             <Image
-              src={user.photoURL}
+              src={profilePhotoURL || user.photoURL || ""}
               alt={user.displayName || user.email || ""}
               className="w-8 h-8 rounded-full"
               height={30}
@@ -63,9 +86,9 @@ export default function UserProfile() {
             <div className="px-4 py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  {user.photoURL ? (
+                  {(profilePhotoURL || user.photoURL) ? (
                     <Image
-                      src={user.photoURL ?? undefined}
+                      src={profilePhotoURL || user.photoURL || ""}
                       alt={user.displayName || user.email || ""}
                       height={30}
                       width={30}
