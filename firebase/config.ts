@@ -26,4 +26,18 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
+
+// Configure Google Auth Provider for better mobile support
+provider.setCustomParameters({
+  prompt: 'select_account',
+  // Add mobile-specific parameters
+  ux_mode: 'popup',
+  // Force account selection
+  access_type: 'offline'
+});
+
+// Add scopes if needed
+provider.addScope('email');
+provider.addScope('profile');
+
 export { provider };

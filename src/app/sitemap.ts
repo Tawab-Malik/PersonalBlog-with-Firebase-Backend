@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next'
-import postData from '../../data/postData.json'
 import type { BlogPost } from '@/types/blog'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '../../firebase/config'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://personal-blogfirebase.vercel.app'
   
   // Static pages
@@ -39,8 +40,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
+  // Fetch posts from Firebase
+  const postsQuery = query(collection(db, 'posts'), where('status', '==', 'published'))
+  const postsSnapshot = await getDocs(postsQuery)
+  const postData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as BlogPost[]
+
   // Dynamic blog post pages
-  const blogPages = (postData as BlogPost[])
+  const blogPages = postData
     .filter((post: BlogPost) => {
       return post && 
              post.slug && 

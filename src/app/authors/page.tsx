@@ -87,8 +87,8 @@ function AuthorsPage() {
         fetchData();
     }, []);
 
-    const getAuthorPostCount = (authorUsername: string) => {
-        return posts.filter(post => post.author?.name === authorUsername).length;
+    const getAuthorPostCount = (authorEmail: string) => {
+        return posts.filter(post => post.author?.email === authorEmail).length;
     };
 
     const filteredAuthors = authors.filter(author =>
@@ -205,7 +205,7 @@ function AuthorsPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredAuthors.map((author, index) => {
-                            const postCount = getAuthorPostCount(author.username);
+                            const postCount = getAuthorPostCount(author.email);
                             const authorSlug = author.username.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                             
                             return (

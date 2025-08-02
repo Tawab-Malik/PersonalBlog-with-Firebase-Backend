@@ -22,7 +22,8 @@ function EditPostForm() {
         coverImage: "",
         publishedAt: "",
         readingTime: "",
-        userId: ""
+        userId: "",
+        status: "draft" as 'draft' | 'published' | 'archived'
     });
     const [loadingPost, setLoadingPost] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +68,8 @@ function EditPostForm() {
                     coverImage: data.coverImage ?? "",
                     publishedAt: data.publishedAt ?? "",
                     readingTime: data.readingTime ?? "",
-                    userId: data.userId ?? ""
+                    userId: data.userId ?? "",
+                    status: data.status ?? "draft"
                 });
                 setPreviewImage(data.coverImage ?? "");
                 setLoadingPost(false);
@@ -95,6 +97,7 @@ function EditPostForm() {
                 coverImage: post.coverImage,
                 publishedAt: post.publishedAt,
                 readingTime: post.readingTime,
+                status: post.status,
                 updatedAt: new Date().toISOString()
             };
 
@@ -307,6 +310,46 @@ function EditPostForm() {
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                         placeholder="5 min read"
                                     />
+                                </div>
+
+                                {/* Status Selection */}
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                        <span className="w-4 h-4">📊</span>
+                                        Post Status
+                                    </label>
+                                    <div className="flex gap-3">
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                value="draft"
+                                                checked={post.status === "draft"}
+                                                onChange={(e) => setPost({ ...post, status: e.target.value as 'draft' | 'published' | 'archived' })}
+                                                className="text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm">Draft</span>
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                value="published"
+                                                checked={post.status === "published"}
+                                                onChange={(e) => setPost({ ...post, status: e.target.value as 'draft' | 'published' | 'archived' })}
+                                                className="text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm">Published</span>
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                value="archived"
+                                                checked={post.status === "archived"}
+                                                onChange={(e) => setPost({ ...post, status: e.target.value as 'draft' | 'published' | 'archived' })}
+                                                className="text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm">Archived</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 {/* User ID (Admin Only) */}

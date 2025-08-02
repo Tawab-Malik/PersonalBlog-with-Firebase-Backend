@@ -158,9 +158,9 @@ export default function Header() {
                     <div className="flex justify-between py-3 items-center w-full">
                         {/* Logo */}
                         <Link href="/" className="text-2xl font-nunito font-bold text-indigo-600">
-                            <Image src="/images/logo.webp" className="w-[120px] h-[35px] md:w-[180px] md:h-[50px]" alt="TawabBlog" width={180} height={60} />
+                            <Image src="/images/logo.webp" className="w-[100px] h-[30px] md:w-[180px] md:h-[50px]" alt="TawabBlog" width={180} height={60} />
                         </Link>
-                        <div className="flex items-center gap-x-3">
+                        <div className="flex items-center gap-x-0.5 md:gap-x-3">
                             <LanguageDropdown/>
                             {user && <NotificationSystem />}
                             {user ? (

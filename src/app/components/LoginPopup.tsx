@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRed
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { adminEmails } from "../../../firebase/constants/adminEmails";
+
 interface LoginPopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,7 +28,20 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
   // Check if device is mobile
   const isMobile = () => {
     if (typeof window !== 'undefined') {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isTablet = /ipad|android(?=.*\b(?!.*mobile).*)/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      
+      console.log("Device detection:", {
+        userAgent: userAgent,
+        isMobileDevice,
+        isTablet,
+        isSmallScreen,
+        screenWidth: window.innerWidth
+      });
+      
+      return isMobileDevice || isTablet || isSmallScreen;
     }
     return false;
   };
@@ -36,13 +50,15 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
   useEffect(() => {
     const handleRedirectResult = async () => {
       try {
+        console.log("Checking for redirect result...");
         const result = await getRedirectResult(auth);
         if (result) {
           const user = result.user;
-          
+          console.log("Redirect login successful:", user.email);
+
           // Check if user document exists in Firestore
           const userDoc = await getDoc(doc(db, "users", user.uid));
-          
+
           if (!userDoc.exists()) {
             // Create user document if it doesn't exist
             const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
@@ -54,7 +70,11 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
               bio: "",
               isAdmin: isAdmin,
             });
+            console.log("User document created in Firestore");
           }
+
+          // Close popup if it's open
+          onClose();
 
           // Show success message
           const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
@@ -63,14 +83,39 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
           } else {
             alert("Login successful! Welcome back!");
           }
+        } else {
+          console.log("No redirect result found");
         }
       } catch (error) {
         console.error("Redirect result error:", error);
+        // Show error message to user
+        if (error && typeof error === 'object' && 'code' in error) {
+          if (error.code === "auth/account-exists-with-different-credential") {
+            alert("An account already exists with the same email address but different sign-in credentials. Please try a different sign-in method.");
+          } else if (error.code === "auth/invalid-credential") {
+            alert("Invalid credentials. Please try again.");
+          } else if (error.code === "auth/operation-not-allowed") {
+            alert("Google sign-in is not enabled. Please contact support.");
+          } else if (error.code === "auth/user-disabled") {
+            alert("This account has been disabled. Please contact support.");
+          } else if (error.code === "auth/user-not-found") {
+            alert("No account found with this email. Please sign up first.");
+          } else if (error.code === "auth/weak-password") {
+            alert("Password is too weak. Please choose a stronger password.");
+          } else if (error.code === "auth/email-already-in-use") {
+            alert("An account already exists with this email address.");
+          } else {
+            alert(`Login failed: ${error.code}. Please try again.`);
+          }
+        } else {
+          alert("Login failed. Please try again.");
+        }
       }
     };
 
+    // Handle redirect result on every mount, not just when popup is closed
     handleRedirectResult();
-  }, []);
+  }, [onClose]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -85,50 +130,82 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
     setError("");
 
     try {
-      // Use redirect method for mobile devices
-      if (isMobile()) {
-        await signInWithRedirect(auth, provider);
-        return; // Redirect will happen, no need to continue
-      }
+      const mobileDetected = isMobile();
+      console.log("Google login attempt - Mobile detected:", mobileDetected);
 
-      // Use popup method for desktop
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      // Always try popup first, then fallback to redirect for mobile
+      try {
+        console.log("Attempting popup login...");
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        console.log("Popup login successful:", user.email);
 
-      // Check if user document exists in Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      
-      if (!userDoc.exists()) {
-        // Create user document if it doesn't exist
-        const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
-        await setDoc(doc(db, "users", user.uid), {
-          username: user.displayName || user.email?.split('@')[0] || "User",
-          email: user.email,
-          createdAt: new Date().toISOString(),
-          profileImage: user.photoURL || "",
-          bio: "",
-          isAdmin: isAdmin,
+        // Check if user document exists in Firestore
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+
+        if (!userDoc.exists()) {
+          // Create user document if it doesn't exist
+          const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
+          await setDoc(doc(db, "users", user.uid), {
+            username: user.displayName || user.email?.split('@')[0] || "User",
+            email: user.email,
+            createdAt: new Date().toISOString(),
+            profileImage: user.photoURL || "",
+            bio: "",
+            isAdmin: isAdmin,
+          });
+          console.log("User document created in Firestore");
+        }
+
+        // Close popup and show success message
+        onClose();
+        setFormData({
+          email: "",
+          password: "",
         });
-      }
 
-      // Close popup and show success message
-      onClose();
-      setFormData({
-        email: "",
-        password: "",
-      });
-      
-      // Show different message for admin vs regular user
-      const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
-      if (isAdmin) {
-        alert("Admin login successful! Welcome back!");
-      } else {
-        alert("Login successful! Welcome back!");
+        // Show different message for admin vs regular user
+        const isAdmin = adminEmails.includes(user.email?.toLowerCase() || "");
+        if (isAdmin) {
+          alert("Admin login successful! Welcome back!");
+        } else {
+          alert("Login successful! Welcome back!");
+        }
+
+      } catch (popupError: unknown) {
+        console.log("Popup failed, error:", popupError);
+        
+        // If popup fails, use redirect for mobile or when popup is blocked
+        if (popupError && typeof popupError === 'object' && 'code' in popupError) {
+          const errorCode = popupError.code;
+          console.log("Popup error code:", errorCode);
+          
+          if (mobileDetected || 
+              errorCode === "auth/popup-blocked" || 
+              errorCode === "auth/popup-closed-by-user" ||
+              errorCode === "auth/cancelled-popup-request") {
+            
+            console.log("Using redirect method...");
+            await signInWithRedirect(auth, provider);
+            return; // Redirect will happen, no need to continue
+          } else {
+            throw popupError; // Re-throw other errors
+          }
+        } else {
+          // If we can't determine the error, use redirect for mobile
+          if (mobileDetected) {
+            console.log("Unknown popup error, using redirect for mobile...");
+            await signInWithRedirect(auth, provider);
+            return;
+          } else {
+            throw popupError;
+          }
+        }
       }
 
     } catch (error: unknown) {
       console.error("Google login error:", error);
-      
+
       if (error && typeof error === 'object' && 'code' in error) {
         if (error.code === "auth/popup-closed-by-user") {
           setError("Login cancelled. Please try again.");
@@ -138,6 +215,10 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
           setError("This domain is not authorized for Google login. Please contact support.");
         } else if (error.code === "auth/network-request-failed") {
           setError("Network error. Please check your internet connection and try again.");
+        } else if (error.code === "auth/cancelled-popup-request") {
+          setError("Login was cancelled. Please try again.");
+        } else if (error.code === "auth/operation-not-allowed") {
+          setError("Google sign-in is not enabled. Please contact support.");
         } else {
           setError(`Login failed: ${error.code}. Please try again.`);
         }
@@ -177,13 +258,13 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
         email: "",
         password: "",
       });
-      
+
       // You can add a toast notification here
       alert("Welcome back! You've successfully logged in.");
 
     } catch (error: unknown) {
       console.error("Login error:", error);
-      
+
       // Handle specific Firebase errors
       if (error && typeof error === 'object' && 'code' in error) {
         if (error.code === "auth/user-not-found") {
@@ -234,39 +315,47 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
               <p className="text-gray-600">Sign in to your account</p>
             </div>
 
-            {/* Google Sign In Button */}
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={googleLoading}
-              className="w-full md:w-100 btn btn-light cursor-pointer flex justify-center border border-2  border-gray-300 text-secondary py-3 rounded-lg fw-semibold hover:bg-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed d-flex align-items-center justify-content-center gap-3 mb-4"
-            >
-              {googleLoading ? (
+                         {/* Google Sign In Button */}
+             <button
+               type="button"
+               onClick={handleGoogleSignIn}
+               disabled={googleLoading}
+               className={`w-full md:w-100 btn btn-light cursor-pointer flex items-center justify-center border border-2 border-gray-300 text-secondary py-3 rounded-lg fw-semibold hover:bg-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed gap-3 mb-4 ${isMobile() ? "flex-col" : "flex-row"}`}
+             >
+               {isMobile() && (
+                 <div className="text-xs text-gray-500 mb-2">
+                   Mobile/Tablet: Will redirect to Google
+                 </div>
+               )}
+                             {googleLoading ? (
+                 <>
+                   <Loader2 className="animate-spin" size={20} />
+                   {isMobile() ? "Redirecting to Google..." : "Signing in..."}
+                 </>
+               ) : (
                 <>
-                  <Loader2 className="animate-spin" size={20} />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                  Continue with Google
+                  <div className="flex items-center gap-2 justify-center">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      />
+                    </svg>
+                    Continue with Google
+                  </div>
+
                 </>
               )}
             </button>
@@ -358,7 +447,7 @@ export default function LoginPopup({ isOpen, onClose, onSwitchToSignup, onSwitch
 
             {/* Forgot Password */}
             <div className="text-center mt-4">
-              <button 
+              <button
                 onClick={onSwitchToForgotPassword}
                 className="text-primary hover:text-primary-600 text-sm cursor-pointer transition-colors"
               >

@@ -20,6 +20,7 @@ interface FormData {
     publishedAt: string;
     readingTime: string;
     categories: string[];
+    status: 'draft' | 'published' | 'archived';
 }
 
 function AddPostForm() {
@@ -70,6 +71,7 @@ function AddPostForm() {
                     email: user.email || ""
                 },
                 categories: selectedCategories,
+                status: data.status || 'draft',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 isAdmin: isAdmin
@@ -360,6 +362,43 @@ function AddPostForm() {
                                     </p>
                                 </div>
 
+                                {/* Status Selection */}
+                                <div className="space-y-3">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Post Status
+                                    </label>
+                                    <div className="flex gap-3">
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                value="draft"
+                                                {...register("status")}
+                                                defaultChecked
+                                                className="text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm">Draft</span>
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                value="published"
+                                                {...register("status")}
+                                                className="text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm">Published</span>
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                value="archived"
+                                                {...register("status")}
+                                                className="text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm">Archived</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 {/* Action Buttons */}
                                 <div className="pt-6 space-y-3">
                                     <Button
@@ -375,7 +414,7 @@ function AddPostForm() {
                                         ) : (
                                             <div className="flex items-center gap-2">
                                                 <Upload className="w-4 h-4" />
-                                                Publish Post
+                                                Create Post
                                             </div>
                                         )}
                                     </Button>

@@ -1,17 +1,65 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { FaRegClock, FaRegCalendarAlt } from 'react-icons/fa';
-import posts from "../../../data/postData.json";
 import { GoArrowRight } from 'react-icons/go';
 import Link from 'next/link';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { db } from '../../../firebase/config';
+
+interface Post {
+    id: string;
+    slug: string;
+    excerpt: string;
+    title: string;
+    coverImage: string;
+    categories: string[] | string;
+    publishedAt: string;
+    readingTime: string;
+    createdAt: unknown;
+}
 
 export default function Trending() {
-    const latestPosts = posts.slice(4, 10).map((post: { slug: string; excerpt: string; title: string; coverImage: string; categories: string[] | string; publishedAt: string; readingTime: string }) => ({
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const postsQuery = query(
+                    collection(db, "posts"),
+                    where("status", "==", "published"),
+                    limit(10)
+                );
+                
+                const querySnapshot = await getDocs(postsQuery);
+                const postsData: Post[] = [];
+                
+                querySnapshot.forEach((doc) => {
+                    postsData.push({
+                        id: doc.id,
+                        ...doc.data()
+                    } as Post);
+                });
+                
+                setPosts(postsData);
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+                setPosts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, []);
+
+    const latestPosts = posts.slice(1, 5).map((post: { slug: string; excerpt: string; title: string; coverImage: string; categories: string[] | string; publishedAt: string; readingTime: string }) => ({
         slug: post.slug,
         content: post.excerpt,
         title: post.title,
@@ -45,7 +93,16 @@ export default function Trending() {
                     </div>
                 </div>
 
-
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6f61]"></div>
+                    </div>
+                ) : posts.length === 0 ? (
+                    <div className="text-center py-12">
+                        <div className="text-gray-500 text-lg mb-4">No trending posts found</div>
+                        <p className="text-gray-400">Check back later for trending content!</p>
+                    </div>
+                ) : (
                 <Swiper
                     spaceBetween={20}
                     slidesPerView={1}
@@ -96,6 +153,7 @@ export default function Trending() {
                         </SwiperSlide>
                     ))}
                 </Swiper>
+                )}
             </div>
         </section>
     );

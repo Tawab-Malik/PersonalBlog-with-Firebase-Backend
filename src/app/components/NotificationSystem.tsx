@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Bell, X, MessageCircle, User, Check, Trash2, AlertCircle, ExternalLink } from "lucide-react";
+import { Bell, X, MessageCircle, User, Check, Trash2, AlertCircle, ExternalLink, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy, limit } from "firebase/firestore";
 import { db } from "../../../firebase/config";
@@ -26,8 +26,10 @@ export default function NotificationSystem() {
     const { user } = useAuth();
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showAllNotifications, setShowAllNotifications] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -44,16 +46,23 @@ export default function NotificationSystem() {
         try {
             console.log("Setting up notifications listener for user:", user.email);
             
-            // Listen for notifications in real-time
-            const notificationsQuery = query(
+            // Listen for recent notifications (limited to 10 for dropdown)
+            const recentNotificationsQuery = query(
                 collection(db, "notifications"),
                 where("recipientEmail", "==", user.email),
                 orderBy("createdAt", "desc"),
-                limit(20)
+                limit(10)
             );
 
-            const unsubscribe = onSnapshot(
-                notificationsQuery,
+            // Listen for all notifications (for "Show All" feature)
+            const allNotificationsQuery = query(
+                collection(db, "notifications"),
+                where("recipientEmail", "==", user.email),
+                orderBy("createdAt", "desc")
+            );
+
+            const unsubscribeRecent = onSnapshot(
+                recentNotificationsQuery,
                 (snapshot) => {
                     const notificationsData: Notification[] = [];
                     let unread = 0;
@@ -83,7 +92,28 @@ export default function NotificationSystem() {
                 }
             );
 
-            return () => unsubscribe();
+            const unsubscribeAll = onSnapshot(
+                allNotificationsQuery,
+                (snapshot) => {
+                    const allNotificationsData: Notification[] = [];
+                    snapshot.forEach((docSnapshot) => {
+                        const data = docSnapshot.data();
+                        allNotificationsData.push({
+                            id: docSnapshot.id,
+                            ...data
+                        } as Notification);
+                    });
+                    setAllNotifications(allNotificationsData);
+                },
+                (error) => {
+                    console.error("Firestore listener error for all notifications:", error);
+                }
+            );
+
+            return () => {
+                unsubscribeRecent();
+                unsubscribeAll();
+            };
         } catch (error) {
             console.error("Error setting up notifications listener:", error);
             setError("Failed to load notifications");
@@ -198,12 +228,31 @@ export default function NotificationSystem() {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden"
+                        className={`absolute -right-24 md:right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${showAllNotifications ? 'max-h-[600px]' : 'max-h-96'} overflow-hidden`}
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-800">Notifications</h3>
+                            <h3 className="font-semibold text-gray-800">
+                                {showAllNotifications ? "All Notifications" : "Recent Notifications"}
+                            </h3>
                             <div className="flex items-center gap-2">
+                                {!showAllNotifications && allNotifications.length > 10 && (
+                                    <button
+                                        onClick={() => setShowAllNotifications(true)}
+                                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                    >
+                                        <Eye className="w-3 h-3" />
+                                        Show All ({allNotifications.length})
+                                    </button>
+                                )}
+                                {showAllNotifications && (
+                                    <button
+                                        onClick={() => setShowAllNotifications(false)}
+                                        className="text-sm text-gray-600 hover:text-gray-800"
+                                    >
+                                        Show Recent
+                                    </button>
+                                )}
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={markAllAsRead}
@@ -214,7 +263,10 @@ export default function NotificationSystem() {
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => setShowDropdown(false)}
+                                    onClick={() => {
+                                        setShowDropdown(false);
+                                        setShowAllNotifications(false);
+                                    }}
                                     className="text-gray-400 hover:text-gray-600"
                                 >
                                     <X className="w-4 h-4" />
@@ -232,21 +284,40 @@ export default function NotificationSystem() {
                             </div>
                         )}
 
+                        {/* Summary */}
+                        {!error && !loading && (
+                            <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                                <div className="flex items-center justify-between text-xs text-gray-600">
+                                    <span>
+                                        {showAllNotifications 
+                                            ? `Showing all ${allNotifications.length} notifications`
+                                            : `Showing ${notifications.length} of ${allNotifications.length} notifications`
+                                        }
+                                    </span>
+                                    {unreadCount > 0 && (
+                                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                            {unreadCount} unread
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Notifications List */}
-                        <div className="max-h-80 overflow-y-auto">
+                        <div className={`${showAllNotifications ? 'max-h-[500px]' : 'max-h-80'} overflow-y-auto`}>
                             {loading ? (
                                 <div className="p-6 text-center text-gray-500">
                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
                                     <p className="mt-2">Loading notifications...</p>
                                 </div>
-                            ) : notifications.length === 0 ? (
+                            ) : (showAllNotifications ? allNotifications : notifications).length === 0 ? (
                                 <div className="p-6 text-center text-gray-500">
                                     <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                                     <p>No notifications yet</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-gray-100">
-                                    {notifications.map((notification) => (
+                                    {(showAllNotifications ? allNotifications : notifications).map((notification) => (
                                         <motion.div
                                             key={notification.id}
                                             initial={{ opacity: 0 }}
@@ -301,7 +372,7 @@ export default function NotificationSystem() {
                                                                 e.stopPropagation();
                                                                 markAsRead(notification.id);
                                                             }}
-                                                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                                            className="text-xs text-blue-600 cursor-pointer hover:text-blue-800 flex items-center gap-1"
                                                         >
                                                             <Check className="w-3 h-3" />
                                                             Mark read
@@ -311,7 +382,7 @@ export default function NotificationSystem() {
                                                                 e.stopPropagation();
                                                                 deleteNotification(notification.id);
                                                             }}
-                                                            className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1"
+                                                            className="text-xs text-red-600 cursor-pointer hover:text-red-800 flex items-center gap-1"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                             Delete
@@ -321,7 +392,7 @@ export default function NotificationSystem() {
                                                                 e.stopPropagation();
                                                                 navigateToPost(notification);
                                                             }}
-                                                            className="text-xs text-green-600 hover:text-green-800 flex items-center gap-1"
+                                                            className="text-xs text-green-600 cursor-pointer hover:text-green-800 flex items-center gap-1"
                                                         >
                                                             <ExternalLink className="w-3 h-3" />
                                                             View Post

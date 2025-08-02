@@ -1,9 +1,23 @@
 "use client";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import posts from "../../../data/postData.json"
 import { Button } from "@heroui/react";
 import { GoArrowRight } from "react-icons/go";
+import { collection, query, where, limit, getDocs } from "firebase/firestore";
+import { db } from "../../../firebase/config";
+
+interface Post {
+    id: string;
+    slug: string;
+    excerpt: string;
+    title: string;
+    coverImage: string;
+    categories: string[] | string;
+    publishedAt: string;
+    readingTime: string;
+    createdAt: unknown;
+}
 const profile = {
     name: "Abdul Tawab",
     role: "Frontend Developer",
@@ -17,6 +31,39 @@ const profile = {
 };
 
 export default function About() {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const postsQuery = query(
+                    collection(db, "posts"),
+                    where("status", "==", "published"),
+                    limit(3)
+                );
+                
+                const querySnapshot = await getDocs(postsQuery);
+                const postsData: Post[] = [];
+                
+                querySnapshot.forEach((doc) => {
+                    postsData.push({
+                        id: doc.id,
+                        ...doc.data()
+                    } as Post);
+                });
+                
+                setPosts(postsData);
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, []);
+
     // Latest 3 posts (first is large, next two are small)
     const latestPosts = posts.slice(0, 3).map((post: { slug: string; excerpt: string; title: string; coverImage: string; categories: string[] | string; publishedAt: string; readingTime: string }) => ({
         slug: post.slug,
@@ -28,8 +75,33 @@ export default function About() {
         readTime: post.readingTime,
     }));
 
+    if (loading) {
+        return (
+            <section className="max-w-7xl mx-auto px-4 py-12 flex xl:flex-row flex-col-reverse gap-10 font-manrope">
+                <div className="w-full">
+                    <div className="mb-10">
+                        <h2 className="text-3xl font-bold text-[#183354]">Explore Latest</h2>
+                    </div>
+                    <div className="flex md:flex-row flex-col w-full gap-6 h-full">
+                        <div className="w-full xl:w-1/3 flex flex-col gap-6">
+                            <div className="animate-pulse bg-gray-200 rounded-2xl h-64"></div>
+                            <div className="animate-pulse bg-gray-200 rounded-2xl h-64"></div>
+                        </div>
+                        <div className="w-full xl:w-2/3 h-full">
+                            <div className="animate-pulse bg-gray-200 rounded-2xl h-96"></div>
+                        </div>
+                    </div>
+                </div>
+                <aside className="flex flex-col gap-8 items-center xl:w-1/3">
+                    <div className="animate-pulse bg-gray-200 rounded-2xl h-80 w-full"></div>
+                    <div className="animate-pulse bg-gray-200 rounded-2xl h-48 w-full"></div>
+                </aside>
+            </section>
+        );
+    }
+
     return (
-        <section className="max-w-7xl mx-auto px-4 py-12 flex xl:flex-row flex-col-reverse  gap-10 font-manrope">
+        <section className="max-w-7xl mx-auto px-4 py-12 flex xl:flex-row flex-col-reverse  gap-10 font-manrope  overflow-hidden">
             {/* Left: Latest Posts */}
             <div className=" w-full">
                 {/* Heading Section */}
@@ -55,9 +127,16 @@ export default function About() {
 
 
                 <div className="flex md:flex-row flex-col w-full gap-6 h-full">
-                    {/* Two Small Cards */}
-                    <div className="w-full xl:w-1/3 flex flex-col gap-6 ">
-                        {latestPosts.slice(1, 3).map((post: { slug: string; content: string; title: string; image: string; category: string; date: string; readTime: string }) => (
+                    {posts.length === 0 ? (
+                        <div className="w-full text-center py-12">
+                            <div className="text-gray-500 text-lg mb-4">No published posts found</div>
+                            <p className="text-gray-400">Check back later for new content!</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Two Small Cards */}
+                            <div className="w-full xl:w-1/3 flex flex-col gap-6 ">
+                                {latestPosts.slice(1, 3).map((post: { slug: string; content: string; title: string; image: string; category: string; date: string; readTime: string }) => (
                             <Link key={post.slug} href={`/${post.slug}`} className="block text-center group rounded-2xl  shadow hover:shadow-xl transition-all duration-300">
                                 <div className="relative pb-5 w-full ">
                                     <Image src={post.image} alt={post.title} height={200} width={400} className="rounded-lg  transition-transform duration-300" />
@@ -100,6 +179,8 @@ export default function About() {
                             </Link>
                         )}
                     </div>
+                        </>
+                    )}
 
 
                 </div>
@@ -128,7 +209,7 @@ export default function About() {
                     </div>
                 </div>
                 {/* Subscribe Box */}
-                <div className="bg-primary-50 rounded-2xl p-6 flex flex-col items-center text-center border border-primary/50">
+                <div className="bg-primary-50 rounded-2xl mx-2 md:mx-0 px-3 py-6 md:p-6 flex flex-col items-center text-center border border-primary/50">
                     <h4 className="text-lg font-bold text-primary mb-2">Subscribe for Updates</h4>
                     <p className="text-gray-600 font-medium mb-4 text-sm">Get the latest posts and updates directly in your inbox.</p>
                     <form className="flex w-full mx-auto md:max-w-xs gap-2">

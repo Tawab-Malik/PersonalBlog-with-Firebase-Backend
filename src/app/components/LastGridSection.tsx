@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GoArrowRight } from "react-icons/go";
 import { useEffect, useState } from "react";
-import { fetchPostsFromFirebase } from "../../../lib/getPosts";
+import { collection, query, where, limit, getDocs } from "firebase/firestore";
+import { db } from "../../../firebase/config";
 import Loader from "./Loader";
 
 
@@ -26,6 +27,7 @@ interface Post {
     publishedAt: string;
     coverImage: string;
     readingTime: string;
+    createdAt: unknown;
 }
 
 
@@ -52,12 +54,34 @@ export default function LastGridSection() {
 
 
     useEffect(() => {
-        async function loadPosts() {
-            const data = await fetchPostsFromFirebase();
-            setPosts(data);
-            setLoading(false);
-        }
-        loadPosts();
+        const fetchPosts = async () => {
+            try {
+                const postsQuery = query(
+                    collection(db, "posts"),
+                    where("status", "==", "published"),
+                    limit(10)
+                );
+                
+                const querySnapshot = await getDocs(postsQuery);
+                const postsData: Post[] = [];
+                
+                querySnapshot.forEach((doc) => {
+                    postsData.push({
+                        id: doc.id,
+                        ...doc.data()
+                    } as Post);
+                });
+                
+                setPosts(postsData);
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+                setPosts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
     }, []);
 
     const categories = [
@@ -99,6 +123,11 @@ export default function LastGridSection() {
                 {/* grid Cards */}
                 {loading ? (
                     <Loader/>
+                ) : posts.length === 0 ? (
+                    <div className="w-full text-center py-12">
+                        <div className="text-gray-500 text-lg mb-4">No published posts found</div>
+                        <p className="text-gray-400">Check back later for new content!</p>
+                    </div>
                 ) : (
                 <div className="w-full grid sm:grid-cols-2 gap-6 ">
                     {latestPosts.map((post: { slug: string; content: string; title: string; image: string; category: string; date: string; readTime: string }) => (
@@ -145,22 +174,24 @@ export default function LastGridSection() {
                     <div className="h-1 w-[10%] bg-[#ff6f61] rounded" />
                     <div className="h-[2px] flex-1 bg-gray-200 ml-1" />
                 </div>
-                <div className="grid grid-cols-2 justify-start gap-3 items-start mt-10">
-                    {categories.map((category, id) => (
+                <div className="grid grid-cols-2  justify-start gap-3 items-start mt-10">
+                    {categories.length > 0 ? categories.map((category, id) => (
                         <Link
                             key={id}
                             href={category === "All" ? "/categories" : `/categories/${category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
-                            className="block"
+                            className="block cursor-pointer h-full"
                         >
                             <button
-                                className={`px-4 py-2 text-sm rounded-md border w-full transition 
-                                     bg-primary text-white hover:!bg-[#F4796C]"
+                                className={`px-4 py-2 cursor-pointer text-sm rounded-md border !min-h-0 !h-auto w-full transition 
+                                     bg-primary text-white hover:!bg-primary-600"
                                     `}
                             >
                                 {category}
                             </button>
                         </Link>
-                    ))}
+                    )) : (
+                        <div className="text-gray-500 text-center col-span-2">No categories found</div>
+                    )}
                 </div>
 
             </aside>
