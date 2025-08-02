@@ -14,6 +14,51 @@ import CommentLikeButton from "@/app/components/CommentLikeButton";
 import { createNotification } from "@/lib/notificationService";
 import { notFound } from "next/navigation";
 
+// Add markdown conversion function
+const convertContentToHTML = (content: string) => {
+    if (!content) return '';
+    
+    return content
+        // Convert headings
+        .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-gray-800 mt-6 mb-3">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-gray-800 mt-8 mb-4">$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-gray-800 mt-8 mb-4">$1</h1>')
+        
+        // Convert bullet points
+        .replace(/^- (.*$)/gim, '<li class="ml-4 mb-2 font-semibold">$1</li>')
+        .replace(/^\* (.*$)/gim, '<li class="ml-4 mb-2 font-semibold">$1</li>')
+        
+        // Convert numbered lists
+        .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-2 font-semibold">$1</li>')
+        
+        // Wrap bullet lists in ul tags
+        .replace(/(<li class="ml-4 mb-2 font-semibold">.*<\/li>)/g, '<ul class="list-disc list-inside my-4 space-y-2">$1</ul>')
+        
+        // Convert numbered lists to ol
+        .replace(/^(\d+)\. (.*$)/gim, '<li class="ml-4 mb-2 font-semibold">$2</li>')
+        .replace(/(<li class="ml-4 mb-2 font-semibold">.*<\/li>)/g, '<ol class="list-decimal list-inside mb-4 space-y-2">$1</ol>')
+        
+        // Convert bold text
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
+        
+        // Convert italic text
+        .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+        
+        // Convert links
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+        
+        // Convert line breaks to paragraphs
+        .split('\n\n')
+        .map(paragraph => {
+            if (paragraph.trim() === '') return '';
+            if (paragraph.startsWith('<h') || paragraph.startsWith('<ul') || paragraph.startsWith('<ol')) {
+                return paragraph;
+            }
+            return `<p class="mb-4 leading-relaxed">${paragraph}</p>`;
+        })
+        .join('');
+};
+
 interface User {
     uid: string;
     username?: string;
@@ -392,10 +437,10 @@ export default function SingleBlog() {
                     ))}
                 </div>
 
-                <p className="text-lg text-gray-700 mb-8">{post!.excerpt}</p>
+                <p className="text-2x text-gray-700 mb-8 font-semibold">{post!.excerpt}</p>
 
                 <div className="prose prose-lg prose-indigo max-w-none text-gray-800 mb-12">
-                    <div dangerouslySetInnerHTML={{ __html: post!.content }} />
+                    <div dangerouslySetInnerHTML={{ __html: convertContentToHTML(post!.content) }} />
                 </div>
 
                 {/* Comments Section */}

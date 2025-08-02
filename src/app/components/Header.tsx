@@ -90,19 +90,7 @@ const menuItems: MenuItem[] = [
     {
         label: "About Us",
         href: "/about",
-        dropdown: [
-            { label: "Our Story", href: "/about/story" },
-            { label: "Team", href: "/about/team" },
-            { label: "Mission", href: "/about/mission" },
-        ],
-    },
-    {
-        label: "Features",
-        dropdown: [
-            { label: "Blog Posts", href: "/features/blog" },
-            { label: "Comments", href: "/features/comments" },
-            { label: "Analytics", href: "/features/analytics" },
-        ],
+        
     },
     {
         label: "Categories",
@@ -121,9 +109,9 @@ const menuItems: MenuItem[] = [
         label: "Contact",
         href: "/contact",
         dropdown: [
-            { label: "Support", href: "/contact/support" },
-            { label: "Feedback", href: "/contact/feedback" },
-            { label: "Partnership", href: "/contact/partnership" },
+            { label: "Support", href: "/support" },
+            { label: "Feedback", href: "/feedback" },
+        
         ],
     },
 ];

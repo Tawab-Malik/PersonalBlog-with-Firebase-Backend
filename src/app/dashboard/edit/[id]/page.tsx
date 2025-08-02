@@ -242,7 +242,20 @@ function EditPostForm() {
                                         onChange={(e) => setPost({ ...post, content: e.target.value })}
                                         rows={12}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                                        placeholder="Write your post content here. You can use markdown formatting..."
+                                        placeholder="Write your post content here. You can use markdown formatting:
+
+# Main Heading
+## Sub Heading
+### Smaller Heading
+
+- Bullet point 1
+- Bullet point 2
+
+**Bold text** and *italic text*
+
+[Link text](https://example.com)
+
+Separate paragraphs with double line breaks."
                     />
                 </div>
                             </div>
@@ -405,6 +418,19 @@ function EditPostForm() {
                                         <li>• Update reading time if needed</li>
                                         <li>• Save frequently</li>
                                     </ul>
+                                </div>
+                                
+                                {/* Markdown Help */}
+                                <div className="mt-3 p-4 bg-gray-50 rounded-lg">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Markdown Formatting Help:</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-600">
+                                        <div><code className="bg-white px-1 rounded"># Heading</code> - Main heading</div>
+                                        <div><code className="bg-white px-1 rounded">## Subheading</code> - Sub heading</div>
+                                        <div><code className="bg-white px-1 rounded">- Item</code> - Bullet point</div>
+                                        <div><code className="bg-white px-1 rounded">**Bold**</code> - Bold text</div>
+                                        <div><code className="bg-white px-1 rounded">*Italic*</code> - Italic text</div>
+                                        <div><code className="bg-white px-1 rounded">[Link](url)</code> - Hyperlink</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
